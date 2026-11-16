@@ -516,6 +516,9 @@ function repCopy(r, p) {
   return { short: "Short hold", text: `Past the line. Try to hold for the whole ${secs(p.hold_s)}.`, note: `rep ${r.n}: held ${r.hold_s.toFixed(1)} of ${p.hold_s} s, a short hold` };
 }
 const line = p => Math.max(0, p.target_deg - p.tol_deg);
+// the trained classifier's opinion, shown only when server.py loaded model.pkl
+const AI_WORD = { controlled: "controlled", short: "a little short", rushed: "a bit quick" };
+const aiTag = r => r.ai ? `<span class="tag" title="Trained classifier, ${Math.round(r.ai.conf * 100)}% confident">Model: ${AI_WORD[r.ai.label] || r.ai.label}</span>` : "";
 const VICON = { good: "check", short: "short", rushed: "quick", "short hold": "hold" };
 const planSentence = p => `Straighten to ${p.target_deg}°, hold for ${secs(p.hold_s)}, ${plural(p.reps, "time")}.`;
 function when(t) {
@@ -761,7 +764,7 @@ function renderLastRep(fresh) {
   const p = S.form, c = repCopy(r, p), chk = (ok, bad, t) => `<span class="${ok ? "ok" : ""}">${icon(ok ? "check" : bad)}${t}</span>`;
   const upOk = r.ext_s >= p.min_ext_s, pace = upOk && !r.paced ? `${r.ret_s.toFixed(1)} s down` : `${r.ext_s.toFixed(1)} s up`;
   el.innerHTML = `<div class="result ${fresh ? "enter" : ""}"><p><b>Rep ${r.n}.</b> ${esc(c.text)}</p>
-    <div class="checks num">${chk(r.reached, "short", r.reached ? `${Math.round(r.peak_deg)}°, past the line` : `${Math.round(r.peak_deg)}°, ${Math.round(line(p) - r.peak_deg)}° short`)}${chk(r.paced, "quick", pace)}${r.reached ? chk(r.held, "hold", `Held ${r.hold_s.toFixed(1)} of ${p.hold_s} s`) : `<span>Hold starts at the line</span>`}</div></div>`;
+    <div class="checks num">${chk(r.reached, "short", r.reached ? `${Math.round(r.peak_deg)}°, past the line` : `${Math.round(r.peak_deg)}°, ${Math.round(line(p) - r.peak_deg)}° short`)}${chk(r.paced, "quick", pace)}${r.reached ? chk(r.held, "hold", `Held ${r.hold_s.toFixed(1)} of ${p.hold_s} s`) : `<span>Hold starts at the line</span>`}${aiTag(r)}</div></div>`;
 }
 function updateCue() {
   const cue = $("#cue"); if (!cue || !S.form) return;
@@ -919,7 +922,7 @@ function renderSet() {
     if (!r) { rows += `<tr><td>${i + 1}</td><td class="todo">–</td><td class="todo">–</td><td class="todo">–</td><td class="todo">–</td><td class="l todo">${i === reps.length && ph === "reps" ? "Up next" : "To come"}</td></tr>`; continue; }
     const c = repCopy(r, p), ok = r.verdict === "good";
     rows += `<tr class="${S.landed === r.n && ph === "reps" ? "landed" : ""}"><td>${r.n}</td><td>${Math.round(r.peak_deg)}°</td><td>${r.ext_s.toFixed(1)} s</td><td>${r.hold_s.toFixed(1)} s</td><td>${r.ret_s.toFixed(1)} s</td>
-      <td class="l"><span class="res ${ok ? "ok" : ""}">${icon(VICON[r.verdict])}${c.short}</span></td></tr>`;
+      <td class="l"><span class="res ${ok ? "ok" : ""}">${icon(VICON[r.verdict])}${c.short}</span>${aiTag(r)}</td></tr>`;
   }
   $("#repRows").innerHTML = rows;
   S.landed = null;

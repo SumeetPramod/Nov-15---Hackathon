@@ -59,15 +59,16 @@ The Serial Monitor at 115200 should show `# ready` and then CSV lines. Close the
 
 ## Using it
 
-1. **Calibrate:** sit with the thigh supported and the foot relaxed, then hold still for 2 s. This records the rest pose and the gyro offset.
-2. **Pick a profile:** set the target range, hold time, minimum extend and return times, and reps, then save it.
-3. **Start set:** the brace vibrates when the leg reaches the target (click), when the hold is complete (double click), and when the set is done (buzz). The set saves itself when the last rep finishes.
+1. **Set rest position:** sit with the thigh supported and the foot relaxed, then hold still for 2 s. This records the rest pose and the gyro offset. If you move, the page asks you to try again.
+2. **Today's plan:** pick a plan, or open *Adjust targets* to change the target, hold time, pace and reps, and save it as a new plan.
+3. **Start set:** the brace clicks when the shin passes the red line (target minus the allowance), double-clicks when the hold is complete, and buzzes when the set is done. After each rep the page explains it in words and draws it on the figure: a dashed outline at the rep's peak, and faint lines a quarter second apart that show how fast the lift was. The set saves itself when the last rep finishes.
+4. **Your progress:** each day's average range against the red line, plus a table of every set. In simulator mode, six labelled sample days come first.
 
 All angles are an **estimated movement range** measured from the calibrated rest pose. They are not an absolute knee angle. The estimate assumes the thigh stays still.
 
 ## Training the classifier
 
-1. Record labelled sets: choose a label under *Training label* and record at least 2 sets of about 5 reps for each of `controlled`, `short`, and `rushed`. More sets make a better test.
+1. Record labelled sets: open http://localhost:8000/?train, choose a label under *Record training data* on the plan step, and record at least 2 sets of about 5 reps for each of `controlled`, `short` and `rushed`. More sets make a better test.
 2. Train:
 
    ```bash
@@ -76,7 +77,7 @@ All angles are an **estimated movement range** measured from the calibrated rest
    ```
 
    The script holds out about 20% of **whole sessions** per label for testing, prints test accuracy, a confusion matrix, and feature importances, then writes `model.pkl`.
-3. The next set you start shows an AI label for each rep next to the rule-based result.
+3. The next set you start shows the model's label ("Model: a bit quick") for each rep next to the rule-based result.
 
 ## Files
 
@@ -84,14 +85,18 @@ All angles are an **estimated movement range** measured from the calibrated rest
 |---|---|
 | `core.py` | Tilt filter, rep detection, metrics, and simulator. `python3 core.py` runs the self-check. |
 | `server.py` | Serial or sim input, HTTP server, live event stream, session storage |
-| `static/index.html` | Dashboard |
+| `static/index.html` | The whole page: figure, session steps, results and progress |
 | `train.py` | Classifier training with a session-level split |
-| `profiles.json` | Exercise profiles |
+| `profiles.json` | Exercise plans |
+| `sample_sessions/` | Labelled sample history, shown only with `--sim` |
 | `sessions/` | One `.json` (reps and summary) and one `.csv` (raw 100 Hz IMU data plus angle) per set |
 | `arduino/rehabify/` | Firmware |
+| `PRODUCT.md`, `DESIGN.md` | Who it's for and the visual system (the Anatomy Plate world) |
+| `brief-rehabify-demo.md`, `journey-rehabify-demo.html`, `wireframes-rehabify.html` | Design brief, demo journey and wireframes |
+| `screenshots/` | Hero image and the three critique rounds |
 
 ## Tuning knobs
 
 - `TiltFilter.ALPHA` in `core.py` (default 0.98): raise it if the angle is noisy, lower it if it drifts or lags.
-- `HAPTIC` in `server.py`: the DRV2605 effect IDs used for each event. Use the **Test vibration** button to try them.
+- `HAPTIC` in `server.py`: the DRV2605 effect IDs used for each event. With the brace connected, use **Test the vibration** on the plan step to try them.
 - The calibration counts as still when gyro noise is below 3 °/s (`core.py`).
