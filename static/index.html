@@ -773,8 +773,8 @@ function updateCue() {
   if (!S.rep.in) {
     if (n >= p.reps) { h = "That's the set"; sub = "Saving your reps…"; }
     else if (n === 0) { h = "Straighten your knee slowly"; sub = sim ? "Press Good rep below, then try the other two to see how Rehabify responds." : `Lift until you feel the click, then hold for ${secs(p.hold_s)}.`; }
-    else if (sim && S.tried.size < 3) { const left = Object.keys(SIM_LABEL).filter(k => !S.tried.has(k)).map(k => SIM_LABEL[k]);
-      h = `Ready for rep ${n + 1}`; sub = `Now try ${left.join(" or ")}, and watch what changes.`; }
+    else if (sim && (() => { const done = new Set([...S.tried, ...S.reps.map(r => ({ good: "controlled", short: "short", rushed: "rushed" })[r.verdict])]); S.left = Object.keys(SIM_LABEL).filter(k => !done.has(k)).map(k => SIM_LABEL[k]); return S.left.length; })()) {
+      const l = S.left; h = `Ready for rep ${n + 1}`; sub = `Now try ${l.length > 1 ? l.slice(0, -1).join(", ") + " or " + l.at(-1) : l[0]}, and watch what changes.`; }
     else { h = `Ready for rep ${n + 1}`; sub = "Straighten slowly when you're ready."; }
   } else if (S.rep.held) { h = "Lovely. Now lower slowly"; sub = `Take about ${secs(p.min_ret_s)} on the way down.`; }
   else if (S.hold > 0) { h = "Hold it there"; sub = "Keep your thigh on the chair."; }
