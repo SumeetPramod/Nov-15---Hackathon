@@ -1,0 +1,167 @@
+{
+ "id": "sample-20261104-094800",
+ "started": 1793814480.0,
+ "ended": 1793814550.0,
+ "profile": {
+  "name": "Quick demo",
+  "target_deg": 50.0,
+  "tol_deg": 5.0,
+  "hold_s": 2.0,
+  "min_ext_s": 1.0,
+  "min_ret_s": 1.0,
+  "reps": 5
+ },
+ "label": null,
+ "source": "sample",
+ "calibration": null,
+ "reps": [
+  {
+   "peak_deg": 43.0,
+   "ext_s": 0.86,
+   "hold_s": 0.0,
+   "ret_s": 0.82,
+   "peak_vel": 39.1,
+   "mean_vel": 24.6,
+   "t_start": 2.0799999999999996,
+   "strobe": [
+    10.1,
+    18.9,
+    28.2,
+    36.2,
+    41.5
+   ],
+   "features": [
+    43.0,
+    0.86,
+    0.0,
+    0.82,
+    39.1,
+    24.6
+   ],
+   "reached": false,
+   "held": false,
+   "paced": false,
+   "verdict": "short"
+  },
+  {
+   "peak_deg": 42.7,
+   "ext_s": 0.69,
+   "hold_s": 0.0,
+   "ret_s": 0.68,
+   "peak_vel": 46.5,
+   "mean_vel": 28.9,
+   "t_start": 7.309999999999889,
+   "strobe": [
+    10.3,
+    21.1,
+    32.0,
+    39.9
+   ],
+   "features": [
+    42.7,
+    0.69,
+    0.0,
+    0.68,
+    46.5,
+    28.9
+   ],
+   "reached": false,
+   "held": false,
+   "paced": false,
+   "verdict": "short"
+  },
+  {
+   "peak_deg": 42.5,
+   "ext_s": 0.71,
+   "hold_s": 0.0,
+   "ret_s": 0.73,
+   "peak_vel": 43.9,
+   "mean_vel": 27.5,
+   "t_start": 12.039999999999788,
+   "strobe": [
+    10.4,
+    20.8,
+    31.3,
+    39.2
+   ],
+   "features": [
+    42.5,
+    0.71,
+    0.0,
+    0.73,
+    43.9,
+    27.5
+   ],
+   "reached": false,
+   "held": false,
+   "paced": false,
+   "verdict": "short"
+  },
+  {
+   "peak_deg": 42.3,
+   "ext_s": 0.85,
+   "hold_s": 0.0,
+   "ret_s": 0.87,
+   "peak_vel": 37.1,
+   "mean_vel": 23.4,
+   "t_start": 16.979999999999855,
+   "strobe": [
+    10.0,
+    18.8,
+    27.9,
+    35.8,
+    40.9
+   ],
+   "features": [
+    42.3,
+    0.85,
+    0.0,
+    0.87,
+    37.1,
+    23.4
+   ],
+   "reached": false,
+   "held": false,
+   "paced": false,
+   "verdict": "short"
+  },
+  {
+   "peak_deg": 43.5,
+   "ext_s": 0.72,
+   "hold_s": 0.0,
+   "ret_s": 0.74,
+   "peak_vel": 45.5,
+   "mean_vel": 28.2,
+   "t_start": 22.33000000000069,
+   "strobe": [
+    10.1,
+    20.8,
+    31.8,
+    40.1
+   ],
+   "features": [
+    43.5,
+    0.72,
+    0.0,
+    0.74,
+    45.5,
+    28.2
+   ],
+   "reached": false,
+   "held": false,
+   "paced": false,
+   "verdict": "short"
+  }
+ ],
+ "summary": {
+  "reps": 5,
+  "mean_peak": 42.8,
+  "sd_peak": 0.4,
+  "mean_ext": 0.77,
+  "sd_ext": 0.07,
+  "mean_hold": 0.0,
+  "mean_ret": 0.77,
+  "pct_reached": 0,
+  "pct_good": 0
+ }
+}

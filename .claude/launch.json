@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "rehaknee-sim",
+      "name": "rehabify-sim",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-u", "server.py", "--sim"],
       "port": 8000

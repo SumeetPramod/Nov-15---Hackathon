@@ -2,358 +2,999 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RehaKnee</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rehabify</title>
+<meta name="description" content="Rehabify measures every rep of your knee rehab exercise: range, pace and hold.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23EEF1EE'/%3E%3Cpath d='M6 11h12M18 11l8 12' stroke='%232C4E9E' stroke-width='3.5' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='11' r='3.5' fill='%23EEF1EE' stroke='%231F2A2E' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <style>
+:root {
+  --paper: #EEF1EE; --sheet: #F7F9F7; --ink: #1F2A2E; --ink-2: #56636A; --rule: #C9D1CE; --rule-soft: #DDE3E0;
+  --vein: #2C4E9E; --vein-hover: #233F82; --on-vein: #FFFFFF; --artery: #C23B32; --nerve: #A8750E;
+  --lymph: #3C8A5F; --lymph-ink: #2F7350; --chair: #9AA6A2; --mark: #7A8783; --tint: rgba(44, 78, 158, .08);
+  --serif: Spectral, Georgia, "Times New Roman", serif;
+  --sans: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
   :root {
-    --bg: #f4f5f7; --card: #fff; --ink: #1c2230; --muted: #6b7385; --line: #e2e5eb;
-    --accent: #2563eb; --good: #15803d; --warn: #b45309; --bad: #b91c1c; --band: rgba(37,99,235,.12);
+    --paper: #121A1D; --sheet: #182226; --ink: #E4EAE7; --ink-2: #9AA8AE; --rule: #2C393E; --rule-soft: #222E33;
+    --vein: #8FAEF0; --vein-hover: #A9C1F5; --on-vein: #0E1A33; --artery: #F07A6E; --nerve: #F0C25A;
+    --lymph: #6FC495; --lymph-ink: #7FD3A4; --chair: #4E5D63; --mark: #6B7A80; --tint: rgba(143, 174, 240, .1);
+    color-scheme: dark;
   }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #0f1218; --card: #181c24; --ink: #e6e9ef; --muted: #8b93a7; --line: #2a303c;
-      --accent: #60a5fa; --good: #4ade80; --warn: #fbbf24; --bad: #f87171; --band: rgba(96,165,250,.15); }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 system-ui, -apple-system, sans-serif; }
-  header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--card); flex-wrap: wrap; }
-  header h1 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
-  header h1 span { color: var(--accent); }
-  .pill { font-size: 13px; padding: 3px 10px; border-radius: 99px; background: var(--bg); color: var(--muted); }
-  .pill.ok { color: var(--good); } .pill.bad { color: var(--bad); }
-  main { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 16px; padding: 16px 20px; max-width: 1300px; margin: 0 auto; }
-  @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); padding: 12px 16px; } }
-  .card { min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
-  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; }
-  .wide { grid-column: 1 / -1; }
-  .step { margin-bottom: 16px; }
-  .step label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-  button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  button:disabled { opacity: .45; cursor: default; }
-  select, input { font: inherit; width: 100%; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-  .grid2 label { margin: 0; }
-  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .note { font-size: 13px; color: var(--muted); margin-top: 6px; }
-  .note.bad { color: var(--bad); } .note.ok { color: var(--good); }
-  .live { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px; align-items: center; }
-  @media (max-width: 700px) { .live { grid-template-columns: minmax(0, 1fr); } }
-  canvas { width: 100%; display: block; }
-  #leg { height: 240px; }
-  #chart { height: 200px; }
-  #hist { height: 220px; }
-  .stats { display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 10px; }
-  .big { font-size: 44px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1; }
-  .big small { font-size: 18px; color: var(--muted); font-weight: 500; }
-  .lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-  .bar { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-top: 6px; width: 160px; }
-  .bar div { height: 100%; width: 0; background: var(--accent); transition: width .1s; }
-  .bar.done div { background: var(--good); }
-  #flash { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); padding: 10px 22px; border-radius: 99px; background: var(--good); color: #fff; font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none; }
-  #flash.show { opacity: 1; }
-  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 14px; }
-  th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  th:first-child, td:first-child, th.l, td.l { text-align: left; }
-  th { font-weight: 500; color: var(--muted); font-size: 12px; }
-  .scroll { overflow-x: auto; }
-  .v-good { color: var(--good); } .v-short, .v-rushed { color: var(--bad); } .v-short.hold { color: var(--warn); }
-  .summary { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 12px; }
-  .summary div b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
-  .delta { font-size: 13px; }
+  .f-beyond { fill-opacity: .16 !important; }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; scroll-padding-top: var(--s5); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 1.0625rem/1.55 var(--sans); -webkit-font-smoothing: antialiased; caret-color: var(--vein); }
+::selection { background: var(--vein); color: var(--on-vein); }
+:focus-visible { outline: 3px solid var(--vein); outline-offset: 2px; }
+h1:focus { outline: none; }
+h1, h2, h3, p, dl, dd, ol, figure { margin: 0; }
+h1, h2 { font-family: var(--serif); font-weight: 600; letter-spacing: -.015em; text-wrap: balance; }
+h1 { font-size: 2.5rem; line-height: 1.1; }
+h2 { font-size: 2.125rem; line-height: 1.15; }
+a { color: var(--vein); text-underline-offset: 3px; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+/* header */
+.bar { display: flex; align-items: center; gap: var(--s6); padding: var(--s4) var(--s7); border-bottom: 1px solid var(--rule); }
+.mark { font: 600 1.625rem/1 var(--serif); letter-spacing: -.01em; color: var(--ink); text-decoration: none; }
+.bar nav { display: flex; gap: var(--s5); }
+.bar nav a { color: var(--ink-2); text-decoration: none; padding: var(--s2) 0; border-bottom: 2px solid transparent; }
+.bar nav a:hover { color: var(--ink); }
+.bar nav a[aria-current] { color: var(--ink); border-bottom-color: var(--vein); }
+.status { margin-left: auto; display: flex; align-items: center; gap: var(--s2); color: var(--ink-2); font-size: 0.9375rem; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--chair); }
+.dot.ok { background: var(--lymph); }
+.dot.wait { background: var(--mark); animation: blink 1.2s ease-in-out infinite; }
+.dot.off { background: transparent; box-shadow: inset 0 0 0 2px var(--ink-2); }
+@keyframes blink { 50% { opacity: .35; } }
+
+/* session: plate + panel */
+.session { display: grid; grid-template-columns: minmax(0, 1fr) 440px; border-bottom: 1px solid var(--rule); }
+.plate { padding: var(--s5) var(--s7) var(--s5); border-right: 1px solid var(--rule); display: flex; flex-direction: column; justify-content: center; min-height: min(760px, calc(100vh - 70px)); }
+.plate svg { width: 100%; height: auto; max-height: calc(100vh - 170px); display: block; overflow: visible; }
+.plate figcaption { font: italic 400 1.1875rem/1.45 var(--serif); color: var(--ink-2); margin-top: var(--s2); max-width: 62ch; }
+.plate figcaption b { font-style: normal; font-weight: 600; color: var(--ink); margin-right: var(--s2); }
+.readouts { display: none; }
+.mk-key { list-style: none; padding: 0; margin: var(--s2) 0 0; display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); font-size: 0.9375rem; color: var(--ink-2); }
+.mk-key li { display: inline-flex; align-items: center; gap: 6px; }
+.mk-key svg { width: 18px; height: 18px; }
+
+/* figure */
+.f-line { fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; }
+.f-chair { stroke: var(--chair); stroke-width: 2; fill: none; }
+.f-hatch { stroke: var(--ink); stroke-width: .8; opacity: .45; }
+.f-dash { stroke: var(--ink); stroke-width: .8; stroke-dasharray: 3 5; opacity: .45; fill: none; }
+.f-limb { fill: var(--tint); stroke: var(--vein); stroke-width: 2.6; stroke-linejoin: round; }
+.f-tibia { stroke: var(--vein); stroke-width: .9; stroke-dasharray: 3 5; fill: none; }
+.f-sensor { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.2; }
+.f-cap { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+.f-beyond { fill-opacity: .09 !important; }
+.f-wedge { fill: var(--artery); fill-opacity: .12; transition: opacity .3s var(--ease); }
+.f-wedge-arc { fill: none; stroke: var(--artery); stroke-width: 4; stroke-linecap: round; transition: opacity .3s var(--ease); }
+.f-track { fill: none; stroke: var(--rule-soft); stroke-width: 7; }
+.f-hold { fill: none; stroke: var(--nerve); stroke-width: 7; stroke-linecap: round; }
+.f-cal { fill: none; stroke: var(--vein); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 377; stroke-dashoffset: 377; opacity: 0; }
+.calibrating .f-cal { opacity: 1; animation: cal 2s linear forwards; }
+@keyframes cal { to { stroke-dashoffset: 0; } }
+.f-ripple { fill: none; stroke: var(--vein); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.f-ripple.go { animation: ripple .9s var(--ease); }
+@keyframes ripple { from { opacity: .9; transform: scale(.4); } to { opacity: 0; transform: scale(2.6); } }
+.f-leader { fill: none; stroke: var(--ink-2); stroke-width: 1; }
+.f-tag { font: italic 600 23px var(--serif); fill: var(--ink-2); }
+.f-val { font: 700 52px var(--sans); fill: var(--ink); font-variant-numeric: tabular-nums; }
+.f-unit { font: 400 24px var(--sans); fill: var(--ink-2); }
+.f-val2 { font: 700 40px var(--sans); fill: var(--ink); }
+.f-strobe line { stroke: var(--vein); stroke-width: 2.6; stroke-linecap: round; }
+.ghost { opacity: 0; transition: opacity .6s var(--ease); }
+.ghost.on { opacity: 1; }
+.f-ghost { fill: none; stroke: var(--vein); stroke-width: 1.6; stroke-dasharray: 5 5; }
+.f-motor rect { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.6; }
+.f-buzz { fill: none; stroke: var(--vein); stroke-width: 2.4; stroke-linecap: round; opacity: 0; }
+.buzz .f-buzz { opacity: 1; }
+.buzz .f-cap { fill: var(--vein); }
+#parts { transition: opacity .3s var(--ease); }
+.mk { transition: fill .2s var(--ease), stroke .2s var(--ease); }
+.mk-todo { fill: var(--mark); stroke: none; }
+.mk-now { fill: var(--paper); stroke: var(--vein); stroke-width: 3.5; }
+.mk-dot { fill: var(--vein); }
+.mk-good { fill: var(--lymph); stroke: var(--lymph); stroke-width: 2; }
+.mk-ring { fill: var(--paper); stroke: var(--ink-2); stroke-width: 2.2; }
+.mk-gap { stroke-dasharray: 5 4; }
+.mk-fill { fill: var(--ink-2); }
+.mk-tick { stroke: var(--ink-2); stroke-width: 2.2; stroke-linecap: round; fill: none; }
+.mk-pop { animation: pop .35s var(--ease); transform-box: fill-box; transform-origin: center; }
+@keyframes pop { from { transform: scale(.3); } }
+.muted-fig .f-limb, .muted-fig .f-line, .muted-fig .f-cap { opacity: .45; }
+.hide { opacity: 0; }
+
+/* panel */
+.panel { padding: var(--s6) var(--s6) var(--s6); display: flex; flex-direction: column; gap: var(--s5); }
+.steps { list-style: none; padding: 0; display: flex; gap: var(--s4); font-size: 0.9375rem; color: var(--ink-2); }
+.steps li { display: flex; align-items: center; gap: var(--s2); }
+.steps .n { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--mark); display: grid; place-items: center; font-size: 0.8125rem; font-weight: 700; }
+.steps [aria-current] { color: var(--ink); font-weight: 700; }
+.steps [aria-current] .n { background: var(--vein); border-color: var(--vein); color: var(--on-vein); }
+.steps .done .n { border-color: var(--lymph); color: var(--lymph-ink); }
+.steps .done .n .ic { width: 14px; height: 14px; stroke-width: 2.5; }
+.view { display: flex; flex-direction: column; gap: var(--s4); }
+.view.enter { animation: rise .24s var(--ease); }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+.view > p { color: var(--ink-2); max-width: 46ch; }
+.view > p.care { font-size: 0.9375rem; }
+.view .lead { font: 400 1.375rem/1.4 var(--serif); color: var(--ink); }
+.btn { font: 700 1rem/1 var(--sans); min-height: 48px; padding: 0 var(--s5); border-radius: 8px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: var(--s2); transition: background-color .15s, border-color .15s, transform .1s; }
+.btn:hover { background: var(--sheet); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--vein); border-color: var(--vein); color: var(--on-vein); }
+.btn.primary:hover { background: var(--vein-hover); border-color: var(--vein-hover); }
+.btn.lg { min-height: 56px; font-size: 1.125rem; padding: 0 var(--s6); }
+.btn.link { border: 0; padding: 0 var(--s1); min-height: 44px; color: var(--ink-2); font-weight: 400; text-decoration: underline; text-underline-offset: 3px; justify-content: flex-start; }
+.btn.link:hover { background: none; color: var(--ink); }
+.btn:disabled, .btn[aria-disabled=true] { opacity: .45; cursor: not-allowed; transform: none; }
+.btn .spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(1turn); } }
+.row { display: flex; gap: var(--s3); flex-wrap: wrap; align-items: center; }
+.err .ic { color: var(--artery); }
+.err { color: var(--ink); font-size: 0.9375rem; display: flex; gap: var(--s2); align-items: flex-start; }
+.err:empty { margin-top: calc(var(--s4) * -1); }
+.field-err { font-size: 0.9375rem; color: var(--ink); grid-column: 1 / -1; }
+.field-err:empty { display: none; }
+.note { display: flex; gap: var(--s3); padding: var(--s4); background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; font-size: 0.9375rem; color: var(--ink-2); }
+.note .ic { color: var(--vein); margin-top: 2px; }
+.note b { display: block; color: var(--ink); font-size: 1.0625rem; }
+.field { display: flex; flex-direction: column; gap: var(--s1); font-size: 0.9375rem; color: var(--ink-2); }
+select, input[type=number], input[type=text] { font: 400 1.0625rem var(--sans); color: var(--ink); background: var(--sheet); border: 1.5px solid var(--mark); border-radius: 8px; min-height: 48px; padding: 0 var(--s3); width: 100%; }
+select:hover, input:hover { border-color: var(--ink-2); }
+details { border-top: 1px solid var(--rule); }
+details:last-of-type { border-bottom: 1px solid var(--rule); }
+summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; min-height: 48px; font-weight: 700; }
+summary::-webkit-details-marker { display: none; }
+summary .ic { transition: transform .2s var(--ease); }
+details[open] summary .ic { transform: rotate(180deg); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); padding-bottom: var(--s4); }
+.radios { display: flex; flex-direction: column; gap: var(--s1); padding-bottom: var(--s4); border: 0; margin: 0; padding-left: 0; }
+.radios label { display: flex; gap: var(--s3); align-items: center; min-height: 40px; cursor: pointer; }
+.radios input { width: 20px; height: 20px; accent-color: var(--vein); }
+.cue-sub { color: var(--ink-2); }
+.hold-box { display: flex; flex-direction: column; gap: var(--s2); }
+.hold-box.off { visibility: hidden; }
+#lastRep { transition: opacity .3s var(--ease); }
+#lastRep.quiet { opacity: .35; }
+#lastRep:empty { display: none; }
+.hold-num { display: flex; align-items: baseline; gap: var(--s2); color: var(--ink-2); }
+.hold-num b { font-size: 2.5rem; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.result { border-top: 1px solid var(--rule); padding-top: var(--s4); display: flex; flex-direction: column; gap: var(--s2); }
+.result.enter { animation: rise .3s var(--ease); }
+.result p { font-size: 1.25rem; line-height: 1.45; color: var(--ink); }
+.checks { display: flex; gap: var(--s2) var(--s4); flex-wrap: wrap; font-size: 1.0625rem; }
+.checks span { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.checks .ok { color: var(--lymph-ink); }
+.facts { display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
+.facts div { display: flex; justify-content: space-between; gap: var(--s4); padding: var(--s3) 0; border-bottom: 1px solid var(--rule); }
+.facts dt { color: var(--ink-2); }
+.facts dd { font-weight: 700; text-align: right; }
+.facts dd span { display: block; font-weight: 400; color: var(--ink-2); font-size: 0.9375rem; }
+.tray { border-top: 1px solid var(--rule); padding-top: var(--s4); display: flex; flex-direction: column; gap: var(--s2); }
+.tray-head { display: flex; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
+.tray-head b { font-size: 1.0625rem; white-space: nowrap; }
+.tray-head span { color: var(--ink-2); font-size: 0.9375rem; }
+.tray-head .keys { margin-left: auto; white-space: nowrap; min-height: 32px; font-size: 0.9375rem; }
+.ask { color: var(--ink); }
+.h-step { font: 700 1.1875rem/1.3 var(--sans); letter-spacing: 0; margin-top: var(--s2); }
+.tray .row { display: grid; grid-template-columns: repeat(3, 1fr); }
+.tray .btn { padding: 0 var(--s2); }
+
+kbd { font: 700 0.8125rem var(--sans); border: 1px solid currentColor; border-radius: 4px; padding: 1px 5px; }
+
+/* sections below */
+.sec { padding: var(--s7) var(--s7) var(--s7); border-bottom: 1px solid var(--rule); max-width: 1440px; }
+.sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s4); flex-wrap: wrap; margin-bottom: var(--s5); }
+.sec-head p { color: var(--ink-2); max-width: 60ch; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th { font-weight: 400; color: var(--ink-2); font-size: 0.9375rem; text-align: right; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--ink); white-space: nowrap; }
+td { text-align: right; padding: var(--s3); border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child, .l { text-align: left; }
+td.todo { color: var(--ink-2); }
+tr.landed td { animation: land 1.6s var(--ease); }
+@keyframes land { from { background: var(--tint); } }
+.res { display: inline-flex; align-items: center; gap: 6px; }
+.res.ok { color: var(--lymph-ink); }
+.t-time { color: var(--ink-2); }
+.tag { font-size: 0.8125rem; color: var(--ink-2); border: 1px solid var(--rule); border-radius: 99px; padding: 2px 8px; margin-left: var(--s2); }
+.specimen { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--s4) var(--s5); margin-top: var(--s6); }
+.specimen figure svg { width: 100%; height: auto; display: block; }
+.specimen figcaption { font-size: 0.9375rem; color: var(--ink-2); }
+.specimen figcaption i { font: italic 600 1rem var(--serif); color: var(--ink); margin-right: var(--s1); }
+.chart svg { width: 100%; height: auto; display: block; }
+.c-axis { stroke: var(--rule); stroke-width: 1; }
+.c-lab { font: 13px var(--sans); fill: var(--ink-2); }
+.c-target { stroke: var(--artery); stroke-width: 1.5; stroke-dasharray: 5 5; fill: none; }
+.c-line { stroke: var(--vein); stroke-width: 2.5; fill: none; stroke-linejoin: round; }
+.c-sample { stroke-dasharray: 2 6; stroke-linecap: round; opacity: .7; }
+.c-sd { stroke: var(--vein); stroke-width: 1.2; opacity: .5; }
+.c-pt { fill: var(--vein); stroke: var(--paper); stroke-width: 2; }
+.c-pt.sample { fill: var(--paper); stroke: var(--vein); stroke-width: 2; }
+.c-val { font: 700 15px var(--sans); fill: var(--ink); }
+.empty { color: var(--ink-2); padding: var(--s5) 0; font: italic 1.1875rem var(--serif); }
+.legend { display: flex; gap: var(--s5); flex-wrap: wrap; font-size: 0.9375rem; color: var(--ink-2); margin-top: var(--s3); }
+.legend span { display: inline-flex; align-items: center; gap: var(--s2); }
+.sw { width: 18px; height: 0; border-top: 2.5px solid var(--vein); }
+.sw.t { border-top: 2px dashed var(--artery); }
+.sw.o { width: 10px; height: 10px; border: 2px solid var(--vein); border-radius: 50%; }
+footer { padding: var(--s6) var(--s7) var(--s7); color: var(--ink-2); font-size: 0.9375rem; max-width: 80ch; }
+
+/* narrow desktop: the plate scales down, so its labels scale up */
+@media (min-width: 901px) and (max-width: 1280px) {
+  .f-tag, .f-unit { font-size: 29px; }
+  .f-val { font-size: 60px; }
+  .f-val2 { font-size: 48px; }
+}
+/* tablet: single column; the plate keeps its leader labels while there is room */
+@media (max-width: 1100px) {
+  html { scroll-padding-bottom: 110px; }
+  body.has-tray .panel { padding-bottom: 104px; }
+  body.has-tray .steps { display: none; }
+  .bar { padding: var(--s3) var(--s4); gap: var(--s4); }
+  .mark { font-size: 1.375rem; }
+  .bar nav { gap: var(--s4); }
+  .session { grid-template-columns: minmax(0, 1fr); }
+  .plate { border-right: 0; border-bottom: 1px solid var(--rule); padding: var(--s3) var(--s4) var(--s4); min-height: 0; }
+  .plate svg { max-height: 46vh; }
+  .plate figcaption { font-size: 1rem; }
+  .panel { padding: var(--s5) var(--s4); }
+  .sec { padding: var(--s6) var(--s4); }
+  footer { padding: var(--s5) var(--s4) 120px; }
+  .tray { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--sheet); border-top: 1px solid var(--rule); padding: var(--s2) var(--s4) calc(var(--s2) + env(safe-area-inset-bottom)); }
+  .tray-head { display: none; }
+}
+/* short or zoomed viewports: the tray joins the page flow so it never hides content */
+@media (max-width: 1100px) and (max-height: 520px) {
+  .tray { position: static; padding: var(--s3) 0 0; background: none; }
+  .tray-head { display: flex; }
+  body.has-tray .panel { padding-bottom: var(--s5); }
+}
+/* phone-sized plate: drop the leader column, show readouts under the figure */
+@media (max-width: 900px) {
+  #leaders, #parts .f-leader, .f-labels { display: none; }
+  .plate svg { max-height: 36vh; }
+  .readouts { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); margin-top: var(--s3); }
+  .readouts div { border-top: 1px solid var(--rule); padding-top: var(--s2); }
+  .readouts dt { font: italic 600 1rem var(--serif); color: var(--ink-2); }
+  .readouts dd { font: 700 1.5rem/1.2 var(--sans); font-variant-numeric: tabular-nums; }
+  .readouts dd span { font-size: 1rem; font-weight: 400; color: var(--ink-2); }
+}
+@media (max-width: 560px) {
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  .bar nav { display: none; }
+  .status { font-size: 0.875rem; }
+  .hold-num b { font-size: 2.125rem; }
+  .plate svg { max-height: 28vh; }
+  .plate figcaption { font-size: 0.9375rem; }
+  .mk-key { font-size: 0.8125rem; gap: 2px var(--s3); }
+  .mk-key svg { width: 15px; height: 15px; }
+  .readouts dd { font-size: 1.375rem; }
+  .readouts dd span { font-size: 0.9375rem; }
+  .steps { gap: var(--s3); font-size: 0.875rem; }
+  .grid2 { grid-template-columns: 1fr; }
+  .btn.lg { width: 100%; }
+  .view .lead { font-size: 1.125rem; }
+  body[data-phase=rest] .plate svg, body[data-phase=restAgain] .plate svg { max-height: 19vh; }
+  body[data-phase=rest] .plate figcaption { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .f-ripple.go { animation: none; }
+  .calibrating .f-cal { animation-duration: 2s !important; }
+}
 </style>
 </head>
 <body>
-<header>
-  <h1>Reha<span>Knee</span></h1>
-  <span id="conn" class="pill">connecting…</span>
-  <span id="modelPill" class="pill">rules only</span>
-  <span style="flex:1"></span>
-  <span id="simBox" class="row" hidden>
-    <span class="lbl">Simulated movement</span>
-    <select id="simStyle" style="width:auto"><option>controlled</option><option>short</option><option>rushed</option></select>
-  </span>
-  <button id="testBuzz" title="Play one vibration on the brace">Test vibration</button>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-short" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12a8 8 0 0 0 16 0z" fill="currentColor"/></symbol>
+  <symbol id="i-quick" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8 9.5h8M8 14.5h8"/></symbol>
+  <symbol id="i-hold" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke-dasharray="3.2 2.6"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+</svg>
+
+<header class="bar">
+  <a class="mark" href="#session">Rehabify</a>
+  <nav aria-label="Sections"><a href="#session" aria-current="location">Session</a><a href="#progress">Progress</a></nav>
+  <p class="status" role="status"><span class="dot wait" id="dot"></span><span id="statusText">Connecting to your brace…</span></p>
 </header>
-<div id="flash"></div>
 
 <main>
-  <section class="card">
-    <h2>Setup</h2>
-    <div class="step">
-      <label>1. Sit, thigh supported, foot relaxed. Hold still for 2 s.</label>
-      <button id="calBtn">Calibrate</button>
-      <div id="calNote" class="note">Not calibrated</div>
-    </div>
-    <div class="step">
-      <label>2. Exercise profile (therapist targets)</label>
-      <select id="profile"></select>
-      <div class="grid2">
-        <label>Target range (°)<input id="f_target_deg" type="number" min="10" max="120"></label>
-        <label>Tolerance (°)<input id="f_tol_deg" type="number" min="0" max="20"></label>
-        <label>Hold (s)<input id="f_hold_s" type="number" min="0" step="0.5"></label>
-        <label>Reps<input id="f_reps" type="number" min="1" max="50"></label>
-        <label>Min extend time (s)<input id="f_min_ext_s" type="number" min="0" step="0.1"></label>
-        <label>Min return time (s)<input id="f_min_ret_s" type="number" min="0" step="0.1"></label>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <input id="profName" placeholder="Profile name" style="flex:1">
-        <button id="saveProf">Save</button>
-      </div>
-    </div>
-    <div class="step">
-      <label>3. Training label (only when recording data for the AI)</label>
-      <select id="label">
-        <option value="">None: normal session</option>
-        <option value="controlled">controlled</option>
-        <option value="short">short (stops before target)</option>
-        <option value="rushed">rushed / abrupt</option>
-      </select>
-    </div>
-    <div class="row">
-      <button id="startBtn" class="primary">Start set</button>
-      <button id="stopBtn">Stop</button>
-    </div>
-    <div id="msg" class="note"></div>
-  </section>
+  <section class="session" id="session" aria-label="Exercise session">
+    <figure class="plate" id="plate">
+      <svg id="fig" viewBox="0 0 1060 640" aria-hidden="true">
+        <line class="f-chair" x1="0" y1="300" x2="300" y2="300"/>
+        <line class="f-chair" x1="40" y1="300" x2="40" y2="636"/>
+        <line class="f-chair" x1="268" y1="300" x2="268" y2="636"/>
+        <line class="f-chair" x1="0" y1="636" x2="760" y2="636" stroke-dasharray="2 6"/>
+        <path class="f-wedge f-beyond" id="beyond" d=""/>
+        <path class="f-wedge-arc" id="wedgeArc" d=""/>
+        <path class="f-line" d="M8,204 C140,192 260,202 346,226"/>
+        <path class="f-line" d="M8,292 C140,300 246,290 312,270"/>
+        <g class="f-hatch">
+          <line x1="60" y1="292" x2="76" y2="278"/><line x1="90" y1="294" x2="106" y2="280"/><line x1="120" y1="295" x2="136" y2="281"/>
+          <line x1="150" y1="295" x2="166" y2="281"/><line x1="180" y1="294" x2="196" y2="280"/><line x1="210" y1="292" x2="226" y2="278"/>
+          <line x1="240" y1="288" x2="256" y2="274"/><line x1="270" y1="282" x2="286" y2="268"/></g>
+        <line class="f-dash" x1="20" y1="248" x2="318" y2="248"/>
+        <g class="f-motor"><rect x="176" y="230" width="32" height="20" rx="6"/><path class="f-buzz" d="M166,228 q-8,12 0,24 M218,228 q8,12 0,24"/></g>
+        <g id="ghostG" class="ghost"><g class="f-strobe" id="strobe"></g><path class="f-ghost" id="ghost" d=""/><g class="f-labels"><polyline class="f-leader" id="ldLast" points=""/><text class="f-tag" x="772" id="tLast">last rep</text><text class="f-val2" x="772" id="vLast"></text><text class="f-unit" x="772" id="uLast"></text></g></g>
+        <path class="f-limb" id="limb" d=""/>
+        <line class="f-tibia" id="tibia"/>
+        <rect class="f-sensor" id="sensor" x="-11" y="-11" width="22" height="22" rx="4"/>
+        <circle class="f-track" cx="330" cy="250" r="46"/>
+        <circle class="f-hold" id="holdArc" cx="330" cy="250" r="46" stroke-dasharray="0 289" transform="rotate(-90 330 250)"/>
+        <circle class="f-cal" id="calRing" cx="330" cy="250" r="60" transform="rotate(-90 330 250)"/>
+        <circle class="f-cap" cx="338" cy="244" r="15"/>
+        <circle class="f-ripple" id="ripple" cx="330" cy="250" r="50"/>
+        <g id="markers"></g>
+        <g id="leaders">
+          <polyline class="f-leader" id="ldRep" points=""/>
+          <polyline class="f-leader" id="ldHold" points=""/>
+          <polyline class="f-leader" id="ldRange" points=""/>
+        </g>
+        <g id="parts">
+          <polyline class="f-leader" points="192,230 192,128 760,128"/>
+          <polyline class="f-leader" id="ldSensor" points=""/>
+          <g class="f-labels">
+            <text class="f-tag" x="772" y="118">vibration motor</text><text class="f-unit" x="772" y="152">clicks when you reach the target</text>
+            <text class="f-tag" x="772" y="290">motion sensor</text><text class="f-unit" x="772" y="324">measures how far the shin turns</text>
+          </g>
+        </g>
+        <g class="f-labels">
+          <g id="lbRep"><text class="f-tag" x="772" y="66">a. rep</text><text class="f-val" x="772" y="132" id="vRep">–</text></g>
+          <g id="lbHold"><text class="f-tag" x="772" y="184">b. hold</text><text class="f-val" x="772" y="250" id="vHold">–</text></g>
+          <g id="lbRange"><text class="f-tag" x="772" id="tRange">c. range</text><text class="f-val" x="772" id="vRange">–</text></g>
+        </g>
+      </svg>
+      <dl class="readouts" aria-hidden="true">
+        <div><dt>rep</dt><dd id="rRep">–</dd></div>
+        <div><dt>hold</dt><dd id="rHold">–</dd></div>
+        <div><dt>range</dt><dd id="rRange">–</dd></div>
+      </dl>
+      <figcaption><b id="capFig">Fig. 1</b><span id="capText">Seated, thigh supported on the chair, foot relaxed.</span></figcaption>
+      <ul class="mk-key" id="key" hidden aria-hidden="true">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="mk-good" cx="12" cy="12" r="9"/></svg>Good</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="mk-ring" cx="12" cy="12" r="9"/><path class="mk-fill" d="M3,12 A9,9 0 0 0 21,12 Z"/></svg>A little short</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="mk-ring" cx="12" cy="12" r="9"/><path class="mk-tick" d="M7.5,9 h9 M7.5,15 h9"/></svg>A bit quick</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="mk-ring mk-gap" cx="12" cy="12" r="9"/></svg>Short hold</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="mk-todo" cx="12" cy="12" r="3.5"/></svg>To come</li>
+      </ul>
+    </figure>
 
-  <section class="card">
-    <h2>Live</h2>
-    <div class="live">
-      <canvas id="leg"></canvas>
-      <div>
-        <div class="stats">
-          <div><div class="lbl">Estimated range</div><div class="big"><span id="angle">--</span><small>°</small></div></div>
-          <div><div class="lbl">Reps</div><div class="big"><span id="repN">0</span><small> / <span id="repT">–</span></small></div></div>
-          <div><div class="lbl">Hold</div><div class="big"><span id="holdS">0.0</span><small> / <span id="holdT">–</span> s</small></div>
-            <div id="holdBar" class="bar"><div></div></div></div>
+    <section class="panel" id="panel" aria-label="What to do now">
+      <ol class="steps" id="steps">
+        <li data-step="rest"><span class="n">1</span>Rest position<span class="sr"></span></li>
+        <li data-step="plan"><span class="n">2</span>Plan<span class="sr"></span></li>
+        <li data-step="reps"><span class="n">3</span>Reps<span class="sr"></span></li>
+      </ol>
+      <div class="view" id="view"></div>
+      <div class="tray" id="tray" hidden>
+        <div class="tray-head"><b>Try a rep</b><span id="trayHint">No brace attached, so you perform the reps.</span><button class="btn link keys" id="keysBtn" aria-pressed="true" data-act="keys">Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>: on</button></div>
+        <div class="row">
+          <button class="btn" data-act="sim" data-style="controlled" aria-keyshortcuts="1">Good rep</button>
+          <button class="btn" data-act="sim" data-style="short" aria-keyshortcuts="2">Stop short</button>
+          <button class="btn" data-act="sim" data-style="rushed" aria-keyshortcuts="3">Rush it</button>
         </div>
-        <canvas id="chart"></canvas>
       </div>
-    </div>
+    </section>
   </section>
 
-  <section class="card wide">
-    <h2>This set</h2>
-    <div id="setSummary" class="summary"></div>
-    <div class="scroll"><table>
-      <thead><tr><th>#</th><th>Range °</th><th>Extend s</th><th>Hold s</th><th>Return s</th><th>Peak speed °/s</th><th class="l">Result</th><th class="l">AI</th></tr></thead>
-      <tbody id="reps"></tbody>
+  <section class="sec" id="set" aria-labelledby="setTitle" hidden>
+    <div class="sec-head"><h2 id="setTitle">This set</h2><p id="setNote"></p></div>
+    <div class="tbl" tabindex="0" role="region" aria-label="Rep results"><table>
+      <thead><tr><th>Rep</th><th>Range</th><th>Lift</th><th>Hold</th><th>Lower</th><th class="l">Result</th></tr></thead>
+      <tbody id="repRows"></tbody>
     </table></div>
+    <div class="specimen" id="specimen" hidden></div>
   </section>
 
-  <section class="card wide">
-    <h2>History</h2>
-    <canvas id="hist"></canvas>
-    <div class="scroll" style="margin-top:12px"><table>
-      <thead><tr><th>Date</th><th class="l">Profile</th><th class="l">Label</th><th>Reps</th><th>Mean range °</th><th>Range SD °</th><th>Extend s</th><th>Hold s</th><th>Return s</th><th>Reached %</th><th>Good %</th><th></th></tr></thead>
-      <tbody id="history"></tbody>
+  <section class="sec" id="progress" aria-labelledby="progTitle">
+    <div class="sec-head"><h2 id="progTitle">Your progress</h2><p id="progNote">Average range per day, against the red line.</p></div>
+    <div class="chart" id="chart"><p class="empty">Loading your sets…</p></div>
+    <div class="legend" id="legend" hidden><span><i class="sw"></i>Average range</span><span><i class="sw t"></i>Red line (target minus allowance)</span><span id="lgSample"><i class="sw o"></i>Sample set</span></div>
+    <div class="tbl" id="histWrap" tabindex="0" role="region" aria-label="Saved sets" style="margin-top: var(--s5)" hidden><table id="histTable">
+      <thead><tr><th>Date</th><th class="l">Plan</th><th>Average range</th><th>Passed the line</th><th>Good reps</th></tr></thead>
+      <tbody id="histRows"></tbody>
     </table></div>
   </section>
 </main>
+<footer>Rehabify estimates your range of movement from the rest position you set. It helps you practise the exercise your physiotherapist gave you; it doesn't diagnose or replace their advice.</footer>
+<div class="sr" aria-live="polite" id="live"></div>
 
 <script>
-const $ = id => document.getElementById(id);
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const icon = (id, cls = "") => `<svg class="ic ${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+const secs = n => plural(+(+n).toFixed(1), "second");
 const FIELDS = ["target_deg", "tol_deg", "hold_s", "reps", "min_ext_s", "min_ret_s"];
-let st = {}, profiles = [], reps = [], trace = [], angle = 0, hold = 0;
-const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const TRAIN = new URLSearchParams(location.search).has("train");   // ?train shows the data-labelling control
+const SIM_LABEL = { controlled: "Good rep", short: "Stop short", rushed: "Rush it" };
+const K = { x: 330, y: 250 }, L = 300, LX = 760;
 
+const S = {
+  st: null, online: false, offlineSince: 0, profiles: [], planIdx: 0, form: null, label: "",
+  reps: [], done: null, history: null, angle: 0, hold: 0, live: false,
+  rep: { in: false, reached: false, held: false }, viewKey: "", err: "", sig: "",
+  interacted: false, simBusy: null, ghost: null, keys: true,
+};
+
+// ---------- server -------------------------------------------------------------------------
 async function api(path, body) {
-  const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const j = await r.json();
-  $("msg").textContent = j.error || "";
-  $("msg").className = "note" + (j.error ? " bad" : "");
-  return j;
+  try {
+    const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const j = await r.json();
+    setErr(j.error || "");
+    return j;
+  } catch {
+    setErr("Rehabify isn't responding. Check that server.py is still running.");
+    return { error: "offline" };
+  }
+}
+function setErr(msg) { S.err = msg; const e = $("#err"); if (e) e.innerHTML = msg ? icon("alert") + `<span>${esc(msg)}</span>` : ""; if (msg && !e) say(msg); }
+// announcements queue briefly so back-to-back messages (last rep + set complete) are all read
+let sayQ = [], sayT;
+function say(t) {
+  sayQ.push(t); clearTimeout(sayT);
+  sayT = setTimeout(() => { const l = $("#live"), msg = sayQ.join(" "); sayQ = []; l.textContent = ""; setTimeout(() => l.textContent = msg, 40); }, 250);
 }
 
-function profileFromForm() {
-  const p = { name: $("profName").value || "Custom" };
-  for (const f of FIELDS) p[f] = Number($("f_" + f).value);
-  return p;
-}
-function fillForm(p) {
-  for (const f of FIELDS) $("f_" + f).value = p[f];
-  $("profName").value = p.name;
-  draw();
-}
-async function loadProfiles(select) {
-  profiles = await api("/api/profiles");
-  $("profile").innerHTML = profiles.map((p, i) => `<option value="${i}">${esc(p.name)}</option>`).join("");
-  const i = Math.max(0, profiles.findIndex(p => p.name === select));
-  $("profile").value = i;
-  fillForm(profiles[i]);
-}
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-
-// --- live stream -----------------------------------------------------------------------
 const es = new EventSource("/events");
-es.onerror = () => { $("conn").textContent = "server offline"; $("conn").className = "pill bad"; };
+es.onopen = () => { S.online = true; render(); };
+es.onerror = () => { S.online = false; S.offlineSince = Date.now(); setTimeout(render, 1600); };
 es.onmessage = e => {
   const m = JSON.parse(e.data);
   if (m.type === "status") onStatus(m);
-  else if (m.type === "live") {
-    angle = m.angle; hold = m.hold;
-    trace.push([m.t, m.angle]);
-    while (trace.length && trace[0][0] < m.t - 12) trace.shift();
-  } else if (m.type === "event") {
-    flash({ target: "Target reached", hold: "Hold complete", set_done: "Set complete" }[m.event]);
-    if (m.event === "set_done") setTimeout(() => st.recording && stop(), 1500);
-  } else if (m.type === "rep") { reps.push(m.rep); renderReps(); }
+  else if (m.type === "live") onLive(m);
+  else if (m.type === "event") onEvent(m.event);
+  else if (m.type === "rep") onRep(m.rep);
 };
 
 function onStatus(m) {
-  st = m;
-  $("conn").textContent = m.connected ? (m.source === "sim" ? "simulated brace" : "brace connected") : "brace disconnected";
-  $("conn").className = "pill " + (m.connected ? "ok" : "bad");
-  $("modelPill").textContent = m.model ? "AI model loaded" : "rules only";
-  $("simBox").hidden = m.source !== "sim";
-  $("simStyle").value = m.sim_style;
-  const c = m.calibration;
-  $("calNote").textContent = m.calibrating ? "Hold still…" : !c ? "Not calibrated"
-    : c.still ? `Calibrated ✓ (gyro noise ${c.gyro_std}°/s)` : `Leg moved during calibration (noise ${c.gyro_std}°/s). Try again.`;
-  $("calNote").className = "note " + (c && !m.calibrating ? (c.still ? "ok" : "bad") : "");
-  $("calBtn").disabled = m.recording || m.calibrating;
-  $("startBtn").disabled = m.recording || !c;
-  $("stopBtn").disabled = !m.recording;
-  for (const el of document.querySelectorAll("#profile, .grid2 input, #label")) el.disabled = m.recording;
-  if (m.recording) { reps = m.reps; fillForm(m.session.profile); renderReps(); }
+  const wasCal = S.st && S.st.calibrating;
+  S.st = m; S.online = true;
+  if (m.recording) { S.reps = (m.reps || []).map((r, i) => ({ ...r, n: r.n || i + 1 })); S.done = null; if (m.session && !S.formFromSession) { S.form = { ...m.session.profile }; S.formFromSession = true; } }
+  else S.formFromSession = false;
+  if (wasCal && !m.calibrating && m.calibration) say(m.calibration.still ? "Rest position set." : "You moved a little. Try again.");
+  if (!m.calibration) S.live = false;
+  render();
+}
+function onLive(m) {
+  S.angle = Math.max(0, m.angle); S.hold = m.hold; S.live = true;
+  if (!S.st || !S.st.recording) return;
+  const p = S.form, start = Math.min(10, .3 * p.target_deg);
+  if (!S.rep.in && S.angle > start) { S.rep = { in: true, reached: false, held: false }; clearGhost(); }
+  if (S.rep.in) {
+    if (S.angle >= p.target_deg - p.tol_deg) S.rep.reached = true;
+    if (S.hold >= p.hold_s) S.rep.held = true;
+    if (S.angle < start * .7) S.rep.in = false;
+  }
+}
+function onEvent(ev) {
+  const r = $("#ripple"), fig = $("#fig");
+  r.classList.remove("go"); void r.getBoundingClientRect(); r.classList.add("go");
+  fig.classList.add("buzz"); clearTimeout(S.buzzT); S.buzzT = setTimeout(() => fig.classList.remove("buzz"), 700);
+  if (ev === "target") say("Target reached.");
+  if (ev === "set_done") setTimeout(() => S.st && S.st.recording && stop(), 1200);
+}
+function onRep(rep) {
+  S.reps = [...S.reps.filter(r => r.n !== rep.n), rep];
+  S.landed = rep.n; S.simBusy = null; renderTray();
+  say(`Rep ${rep.n} of ${S.form.reps}. ${repCopy(rep, S.form).text}`);
+  showGhost(rep);
+  renderLastRep(true); renderSet(); drawMarkers(rep.n);
 }
 
-function flash(text) {
-  if (!text) return;
-  $("flash").textContent = text;
-  $("flash").classList.add("show");
-  clearTimeout(flash.t);
-  flash.t = setTimeout(() => $("flash").classList.remove("show"), 1200);
+// ---------- copy -----------------------------------------------------------------------------
+function repCopy(r, p) {
+  if (r.verdict === "good") return { short: "Full range, steady", text: `Past the line, steady pace, held ${r.hold_s.toFixed(1)} s.`, note: `rep ${r.n}: ${Math.round(r.peak_deg)}°, held ${r.hold_s.toFixed(1)} s` };
+  if (r.verdict === "short") return { short: "A little short", text: `${Math.round(r.peak_deg)}°, just short of the red line at ${line(p)}°. Ease a little further next time.`, note: `rep ${r.n}: ${Math.round(r.peak_deg)}°, a little short` };
+  if (r.verdict === "rushed") {
+    const up = r.ext_s < p.min_ext_s, t = up ? r.ext_s : r.ret_s;
+    return { short: "A bit quick", text: `That one was quick: ${t.toFixed(1)} s on the way ${up ? "up" : "down"}. Aim for about ${secs(up ? p.min_ext_s : p.min_ret_s)}.`, note: `rep ${r.n}: ${t.toFixed(1)} s ${up ? "up" : "down"}, a bit quick` };
+  }
+  return { short: "Short hold", text: `Past the line. Try to hold for the whole ${secs(p.hold_s)}.`, note: `rep ${r.n}: held ${r.hold_s.toFixed(1)} of ${p.hold_s} s, a short hold` };
 }
+const line = p => Math.max(0, p.target_deg - p.tol_deg);
+const VICON = { good: "check", short: "short", rushed: "quick", "short hold": "hold" };
+const planSentence = p => `Straighten to ${p.target_deg}°, hold for ${secs(p.hold_s)}, ${plural(p.reps, "time")}.`;
+function when(t) {
+  const d = new Date(t * 1000), days = (Date.now() - d) / 864e5;
+  if (days < 1 && new Date().getDate() === d.getDate()) return "earlier today";
+  return days < 6.5 ? d.toLocaleDateString(undefined, { weekday: "long" }) : d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
+const shortDate = t => new Date(t * 1000).toLocaleDateString(undefined, { day: "numeric", month: "short" });
 
-// --- actions ---------------------------------------------------------------------------
-$("calBtn").onclick = () => api("/api/calibrate", {});
-$("startBtn").onclick = async () => {
-  const j = await api("/api/start", { profile: profileFromForm(), label: $("label").value });
-  if (!j.error) { reps = []; renderReps(); }
+// ---------- phase + panel ----------------------------------------------------------------
+function phase() {
+  const st = S.st;
+  if (!S.online && Date.now() - S.offlineSince > 1500) return "offline";
+  if (!st) return "connecting";
+  if (!st.connected) return "unplugged";
+  if (st.recording) return "reps";
+  if (st.calibrating) return "calibrating";
+  if (S.done) return "complete";
+  if (!st.calibration) return "rest";
+  if (!st.calibration.still) return "restAgain";
+  return "plan";
+}
+const STEP = { rest: "rest", restAgain: "rest", calibrating: "rest", plan: "plan", reps: "reps", complete: "reps" };
+const PLAN_ACTIVE = ["plan", "reps", "complete"];
+
+const VIEWS = {
+  connecting: () => `<h1>Waking up the brace</h1><p>This takes a moment.</p>`,
+  offline: () => `<h1>Rehabify isn't running</h1><p>Start it again with <b>python3 server.py --sim</b> in the project folder, or without <b>--sim</b> for the brace. This page reconnects by itself.</p>`,
+  unplugged: () => `<h1>Brace not found</h1><p>Plug the brace into this computer with its USB cable. Rehabify picks it up on its own, and your saved sets are safe.</p>`,
+  rest: () => `<h1>Every rep, checked</h1>
+    <p class="lead">Rehabify measures each knee extension for range, pace and hold, and clicks through the brace when you reach your target.</p>
+    <h2 class="h-step">First, your resting position</h2>
+    <p>${S.st && S.st.source === "sim" ? "Press the button. The simulated leg stays still for 2 seconds while Rehabify measures where it rests." : "Sit tall with your thigh supported on the chair and your foot relaxed. Press the button, then stay still for 2 seconds."}</p>
+    <div class="row"><button class="btn primary lg" data-act="calibrate">Set rest position</button></div>
+    <p class="err" id="err" role="alert"></p>
+    ${S.st && S.st.source === "sim" ? `<div class="note">${icon("info")}<div><b>No brace? No problem.</b>Rehabify is running a simulated leg, so you can try the whole session from this page.</div></div>` : ""}`,
+  calibrating: () => `<h1>Hold still</h1><p>Measuring your rest position. This takes 2 seconds.</p>
+    <div class="row"><button class="btn primary lg" disabled><span class="spin"></span>Measuring…</button></div>`,
+  restAgain: () => `<h1>You moved a little</h1><p>That's fine. Get comfortable, then try again and stay still for 2 seconds.</p>
+    <div class="row"><button class="btn primary lg" data-act="calibrate">Try again</button></div><p class="err" id="err" role="alert"></p>`,
+  plan: () => {
+    const p = S.form;
+    return `<h1>Today's plan</h1>
+    <p class="lead" id="sentence">${planSentence(p)}</p>
+    <label class="field">Plan
+      <select id="planSel">${planOptions()}</select></label>
+    <details><summary>Adjust targets ${icon("chev")}</summary>
+      <div class="grid2">
+        <label class="field">Target range (°)<input type="number" id="f_target_deg" min="10" max="120" step="1" value="${p.target_deg}"></label>
+        <label class="field">Allowed short of target (°)<input type="number" id="f_tol_deg" min="0" max="20" step="1" value="${p.tol_deg}"></label>
+        <label class="field">Hold at the top (s)<input type="number" id="f_hold_s" min="0" max="30" step="0.5" value="${p.hold_s}"></label>
+        <label class="field">Reps<input type="number" id="f_reps" min="1" max="30" step="1" value="${p.reps}"></label>
+        <label class="field">Lift for at least (s)<input type="number" id="f_min_ext_s" min="0" max="10" step="0.1" value="${p.min_ext_s}"></label>
+        <label class="field">Lower for at least (s)<input type="number" id="f_min_ret_s" min="0" max="10" step="0.1" value="${p.min_ret_s}"></label>
+        <p class="field-err" id="fieldErr" role="status"></p>
+        <div class="field" style="grid-column: 1 / -1"><label for="planName">Save these targets as</label>
+          <span class="row" style="flex-wrap: nowrap"><input type="text" id="planName" value="${esc(p.name)}" maxlength="60"><button class="btn" data-act="savePlan">Save plan</button></span></div>
+      </div></details>
+    ${TRAIN ? `<details><summary>Record training data ${icon("chev")}</summary>
+      <fieldset class="radios"><legend class="sr">Label this set's reps</legend>
+        ${[["", "Off: a normal session"], ["controlled", "Label reps as controlled"], ["short", "Label reps as a little short"], ["rushed", "Label reps as a bit quick"]]
+          .map(([v, t]) => `<label><input type="radio" name="label" value="${v}" ${S.label === v ? "checked" : ""}>${t}</label>`).join("")}
+      </fieldset></details>` : ""}
+    <div class="row"><button class="btn primary lg" data-act="start">Start set</button></div>
+    <p class="err" id="err" role="alert"></p>
+    <p class="care">Stop if anything hurts, and check with your physio.</p>
+    <div class="row"><button class="btn link" data-act="calibrate">Set rest position again</button>
+      ${S.st && S.st.source !== "sim" ? `<button class="btn link" data-act="buzz">Test the vibration</button>` : ""}</div>`;
+  },
+  reps: () => `<h1 id="cue">Straighten your knee slowly</h1><p class="cue-sub" id="cueSub"></p>
+    <div class="hold-box" id="holdBox"><p class="hold-num"><b id="holdNum">0.0</b><span>of ${secs(S.form.hold_s)} held</span></p></div>
+    <div id="lastRep"></div>
+    <p class="err" id="err" role="alert"></p>
+    <div class="row" id="endRow"><button class="btn link" data-act="stopAsk">End set early</button></div>`,
+  complete: () => {
+    const d = S.done, p = d.profile, m = d.summary, n = m.reps;
+    const reached = d.reps.filter(r => r.reached).length, good = d.reps.filter(r => r.verdict === "good").length;
+    const paced = d.reps.filter(r => r.paced).length, held = d.reps.filter(r => r.held).length;
+    const prev = (S.history || []).filter(s => s.id !== d.id && !s.sample && s.summary && s.summary.reps).at(-1);
+    const delta = prev ? Math.round(m.mean_peak - prev.summary.mean_peak) : null, w = prev && when(prev.started);
+    const cmp = prev == null ? "" : delta > 0 ? `${delta}° more than ${w}` : delta < 0 ? `${-delta}° less than ${w}` : `the same as ${w}`;
+    const work = d.reps.find(r => r.verdict !== "good");
+    const title = !n ? "Set ended" : good === n ? "Beautiful set. Every rep full and held." : reached === n ? "Every rep passed the line."
+      : reached >= Math.ceil(n * .6) ? `Nice work. ${reached} of ${n} passed the line.` : `A good start. ${reached} of ${n} passed the line.`;
+    return `<h1>${title}</h1>
+    ${n ? `<dl class="facts">
+      <div><dt>Average range</dt><dd class="num">${Math.round(m.mean_peak)}°<span>${cmp || `red line at ${line(p)}°`}</span></dd></div>
+      <div><dt>Steady pace</dt><dd class="num">${paced} of ${n} reps</dd></div>
+      <div><dt>Held ${secs(p.hold_s)}</dt><dd class="num">${held} of ${n} reps</dd></div>
+      <div><dt>To work on</dt><dd>${work ? `Rep ${work.n}<span>${esc(repCopy(work, p).short.toLowerCase())}</span>` : "Nothing. Keep it up."}</dd></div></dl>
+      <p><a href="#set">See each rep, drawn at its peak</a></p>` : `<p>No reps were recorded this time. Start another set when you're ready.</p>`}
+    <div class="row"><button class="btn primary lg" data-act="again">Start another set</button><button class="btn link" data-act="toPlan">Change plan</button></div>
+    <p class="err" id="err" role="alert"></p>`;
+  },
 };
-$("stopBtn").onclick = () => stop();
-async function stop() { const j = await api("/api/stop", {}); if (!j.error) loadHistory(); }
-$("profile").onchange = () => fillForm(profiles[$("profile").value]);
-$("saveProf").onclick = async () => { const p = profileFromForm(); const j = await api("/api/profiles", p); if (!j.error) loadProfiles(p.name); };
-$("simStyle").onchange = () => api("/api/sim", { style: $("simStyle").value });
-$("testBuzz").onclick = () => api("/api/buzz", { effect: 1 });
-for (const f of FIELDS) $("f_" + f).oninput = draw;
+const planOptions = () => S.profiles.map((x, i) => `<option value="${i}" ${i === S.planIdx ? "selected" : ""}>${esc(x.name)}</option>`).join("");
 
-// --- tables ----------------------------------------------------------------------------
-const VCLASS = { good: "v-good", short: "v-short", rushed: "v-rushed", "short hold": "v-short hold" };
-function renderReps() {
-  $("reps").innerHTML = reps.map(r => `<tr>
-    <td>${r.n}</td><td>${r.peak_deg}</td><td>${r.ext_s}</td><td>${r.hold_s}</td><td>${r.ret_s}</td><td>${r.peak_vel}</td>
-    <td class="l ${VCLASS[r.verdict]}">${r.verdict}</td>
-    <td class="l">${r.ai ? `${r.ai.label} <span class="note">${Math.round(r.ai.conf * 100)}%</span>` : "–"}</td></tr>`).reverse().join("");
-  const n = reps.length, mean = k => reps.reduce((s, r) => s + r[k], 0) / n;
-  const sd = k => Math.sqrt(reps.reduce((s, r) => s + (r[k] - mean(k)) ** 2, 0) / n);
-  $("setSummary").innerHTML = !n ? '<div class="note">Reps appear here as you go.</div>' : [
-    ["Mean range", mean("peak_deg").toFixed(1) + "°"], ["Range consistency (SD)", "±" + sd("peak_deg").toFixed(1) + "°"],
-    ["Mean extend", mean("ext_s").toFixed(2) + " s"], ["Pace consistency (SD)", "±" + sd("ext_s").toFixed(2) + " s"],
-    ["Reached target", Math.round(100 * reps.filter(r => r.reached).length / n) + "%"],
-  ].map(([k, v]) => `<div><span class="lbl">${k}</span><b>${v}</b></div>`).join("");
+function render() {
+  const ph = phase(), st = S.st;
+  // status pill (only touch it when it changes: it is a live region)
+  const [cls, txt] = ph === "offline" ? ["off", "Rehabify isn't running"] : !st ? ["wait", "Connecting to your brace…"]
+    : !st.connected ? ["off", "Brace not found"] : st.source === "sim" ? ["ok", "Simulated brace"] : ["ok", "Brace connected"];
+  if ($("#statusText").textContent !== txt) { $("#dot").className = "dot " + cls; $("#statusText").textContent = txt; }
+  // steps
+  const order = ["rest", "plan", "reps"], cur = ph === "complete" ? null : STEP[ph], ci = order.indexOf(cur);
+  for (const li of $("#steps").children) {
+    const i = order.indexOf(li.dataset.step), done = ci > i || ph === "complete";
+    if (li.dataset.step === cur) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current");
+    li.classList.toggle("done", done);
+    li.querySelector(".n").innerHTML = done ? icon("check") : i + 1;
+    li.querySelector(".sr").textContent = done ? ", done" : "";
+  }
+  $("#steps").hidden = !STEP[ph];
+  // panel view; keep keyboard focus in the panel when the step changes
+  const key = ph + (ph === "complete" ? S.done.id : "");
+  if (key !== S.viewKey && (ph !== "plan" || S.form)) {
+    const v = $("#view"), a = document.activeElement;
+    const hadFocus = S.interacted && (a === document.body || $("#panel").contains(a));
+    v.innerHTML = VIEWS[ph]();
+    v.classList.remove("enter"); void v.offsetWidth; v.classList.add("enter");
+    S.viewKey = key; S.err = "";
+    if (ph === "reps") renderLastRep(false);
+    if (hadFocus) { const h = v.querySelector("h1"); h.tabIndex = -1; h.focus({ preventScroll: true }); h.scrollIntoView({ block: "nearest" }); }
+  }
+  const tray = ph === "reps" && st && st.source === "sim";
+  $("#tray").hidden = !tray; document.body.classList.toggle("has-tray", !!tray);
+  renderTray();
+  // figure statics
+  $("#plate").classList.toggle("calibrating", ph === "calibrating");
+  $("#fig").classList.toggle("muted-fig", ["offline", "connecting", "unplugged"].includes(ph));
+  $("#parts").classList.toggle("hide", PLAN_ACTIVE.includes(ph));
+  $("#key").hidden = !["reps", "complete"].includes(ph);
+  $(".readouts").hidden = !PLAN_ACTIVE.includes(ph);
+  document.body.dataset.phase = ph;
+  drawWedge(); drawMarkers();
+  const fig = { offline: 1, connecting: 1, unplugged: 1, rest: 1, restAgain: 1, calibrating: 1, plan: 2, reps: 3, complete: 4 }[ph];
+  $("#capFig").textContent = `Fig. ${fig}`;
+  renderSet();
+}
+function renderTray() {
+  const busy = S.simBusy;
+  for (const b of document.querySelectorAll("#tray [data-act=sim]")) {
+    b.setAttribute("aria-disabled", busy ? "true" : "false");
+    const t = busy === b.dataset.style ? "Performing…" : SIM_LABEL[b.dataset.style];
+    if (b.textContent !== t) b.textContent = t;
+  }
+  const h = $("#trayHint"), t = busy ? `Performing: ${SIM_LABEL[busy]}…` : "No brace attached, so you perform the reps.";
+  if (h.textContent !== t) h.textContent = t;
 }
 
-let history = [];
+// panel interactions
+document.addEventListener("pointerdown", () => S.interacted = true);
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  S.interacted = true;
+  const act = b.dataset.act;
+  if (act === "calibrate") { S.done = null; await api("/api/calibrate", {}); }
+  if (act === "start" || act === "again") start();
+  if (act === "stop") stop();
+  if (act === "toPlan") { S.done = null; render(); }
+  if (act === "buzz") api("/api/buzz", { effect: 1 });
+  if (act === "sim") simRep(b.dataset.style);
+  if (act === "keys") { S.keys = !S.keys; b.setAttribute("aria-pressed", S.keys); b.innerHTML = `Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>: ${S.keys ? "on" : "off"}`; }
+  if (act === "stopAsk") $("#endRow").innerHTML = `<span class="ask">End now and save ${plural(S.reps.length, "rep")}?</span><button class="btn" data-act="stop">End set</button><button class="btn link" data-act="keepGoing">Keep going</button>`;
+  if (act === "keepGoing") $("#endRow").innerHTML = `<button class="btn link" data-act="stopAsk">End set early</button>`;
+  if (act === "savePlan") {
+    readForm(true); const name = ($("#planName").value || "").trim() || "My plan";
+    const j = await api("/api/profiles", { ...S.form, name });
+    if (!j.error) { S.profiles = j; S.planIdx = j.findIndex(x => x.name === name); S.form = { ...j[S.planIdx] }; $("#planSel").innerHTML = planOptions(); say(`Saved plan ${name}.`); }
+  }
+});
+document.addEventListener("change", e => {
+  if (e.target.id === "planSel") {   // update in place: no re-render, so focus and open sections stay put
+    S.planIdx = +e.target.value; S.form = { ...S.profiles[S.planIdx] };
+    for (const f of FIELDS) { const el = $("#f_" + f); if (el) el.value = S.form[f]; }
+    $("#planName").value = S.form.name; $("#sentence").textContent = planSentence(S.form); setErr(""); drawWedge(); drawMarkers();
+  }
+  if (e.target.id && e.target.id.startsWith("f_")) { readForm(true); $("#sentence").textContent = planSentence(S.form); drawWedge(); drawMarkers(); }
+  if (e.target.name === "label") S.label = e.target.value;
+});
+document.addEventListener("input", e => { if (e.target.id && e.target.id.startsWith("f_")) { readForm(false); $("#sentence").textContent = planSentence(S.form); drawWedge(); drawMarkers(); } });
+function readForm(clamp) {
+  const fixed = [];
+  for (const f of FIELDS) {
+    const el = $("#f_" + f); if (!el) continue;
+    if (el.value === "") { if (clamp) el.value = S.form[f]; continue; }
+    let v = Number(el.value); const lo = +el.min, hi = +el.max;
+    el.removeAttribute("aria-invalid"); el.removeAttribute("aria-describedby");
+    if (!(v >= lo && v <= hi)) {
+      if (!clamp) continue;
+      v = Math.min(hi, Math.max(lo, isNaN(v) ? lo : v)); el.value = v;
+      el.setAttribute("aria-describedby", "fieldErr"); el.setAttribute("aria-invalid", "true");
+      fixed.push(`${el.closest("label").firstChild.textContent.replace(/\s*\(.*\)/, "").trim()} set to ${v}, ${v === hi ? "the most" : "the least"} allowed`);
+    }
+    S.form[f] = f === "reps" ? Math.round(v) : v;
+  }
+  const fe = $("#fieldErr");
+  if (clamp && fe) fe.textContent = fixed.length ? fixed.join(". ") + "." : "";
+}
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input, select, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
+  S.interacted = true;
+  // 1/2/3 only act while focus is in the session panel, so they never fire from elsewhere on the page
+  const style = { 1: "controlled", 2: "short", 3: "rushed" }[e.key];
+  if (style && !$("#tray").hidden && S.keys) { e.preventDefault(); simRep(style); }
+});
+
+async function start() {
+  if (phase() === "plan") readForm(true);
+  S.reps = []; S.rep = { in: false, reached: false, held: false }; S.ghost = null;
+  const j = await api("/api/start", { profile: S.form, label: S.label });
+  if (!j.error) { S.done = null; say(`Set started. ${planSentence(S.form)}`); }
+}
+async function stop() {
+  const reps = S.reps.slice(), profile = { ...S.form };
+  const j = await api("/api/stop", {});
+  if (j.error) return;
+  S.done = { id: j.id, summary: j.summary, reps, profile }; S.simBusy = null;
+  const reached = reps.filter(r => r.reached).length, work = reps.find(r => r.verdict !== "good");
+  if (reps.length) setTimeout(() => say(`${reached} of ${reps.length} passed the line.${work ? ` Rep ${work.n} to work on: ${repCopy(work, profile).short.toLowerCase()}.` : ""}`), 1500);
+  await loadHistory();
+  render();
+}
+async function simRep(style) {
+  if (S.simBusy) { say("Wait for this rep to finish."); return; }
+  S.simBusy = style; renderTray();
+  const j = await api("/api/sim", { style });
+  clearTimeout(S.simT);
+  if (j.error) { S.simBusy = null; renderTray(); return; }
+  S.simT = setTimeout(() => { S.simBusy = null; renderTray(); }, 15000);   // fallback if the rep is discarded as noise
+}
+
+// ---------- live panel bits ----------------------------------------------------------------
+function renderLastRep(fresh) {
+  const el = $("#lastRep"); if (!el) return;
+  const r = S.reps.at(-1);
+  if (!r) { el.innerHTML = ""; return; }
+  const p = S.form, c = repCopy(r, p), chk = (ok, bad, t) => `<span class="${ok ? "ok" : ""}">${icon(ok ? "check" : bad)}${t}</span>`;
+  const upOk = r.ext_s >= p.min_ext_s, pace = upOk && !r.paced ? `${r.ret_s.toFixed(1)} s down` : `${r.ext_s.toFixed(1)} s up`;
+  el.innerHTML = `<div class="result ${fresh ? "enter" : ""}"><p><b>Rep ${r.n}.</b> ${esc(c.text)}</p>
+    <div class="checks num">${chk(r.reached, "short", r.reached ? `${Math.round(r.peak_deg)}°, past the line` : `${Math.round(r.peak_deg)}°, ${Math.round(line(p) - r.peak_deg)}° short`)}${chk(r.paced, "quick", pace)}${r.reached ? chk(r.held, "hold", `Held ${r.hold_s.toFixed(1)} of ${p.hold_s} s`) : `<span>Hold starts at the line</span>`}</div></div>`;
+}
+function updateCue() {
+  const cue = $("#cue"); if (!cue || !S.form) return;
+  const p = S.form, n = S.reps.length, sim = S.st && S.st.source === "sim";
+  let h, sub;
+  if (!S.rep.in) {
+    if (n >= p.reps) { h = "That's the set"; sub = "Saving your reps…"; }
+    else if (n === 0) { h = "Straighten your knee slowly"; sub = sim ? "Press Good rep below, then try the other two to see how Rehabify responds." : `Lift until you feel the click, then hold for ${secs(p.hold_s)}.`; }
+    else if (n === 1 && sim) { h = `Ready for rep ${n + 1}`; sub = "Now try Stop short or Rush it, and watch what changes."; }
+    else { h = `Ready for rep ${n + 1}`; sub = "Straighten slowly when you're ready."; }
+  } else if (S.rep.held) { h = "Lovely. Now lower slowly"; sub = `Take about ${secs(p.min_ret_s)} on the way down.`; }
+  else if (S.hold > 0) { h = "Hold it there"; sub = "Keep your thigh on the chair."; }
+  else if (S.rep.reached) { h = "Lower slowly"; sub = `Take about ${secs(p.min_ret_s)} on the way down.`; }
+  else { h = "Keep going"; sub = `${Math.max(0, Math.round(p.target_deg - p.tol_deg - S.angle))}° to the red line.`; }
+  if (cue.textContent !== h) cue.textContent = h;
+  const cs = $("#cueSub"); if (cs.textContent !== sub) cs.textContent = sub;
+  $("#holdBox").classList.toggle("off", !S.rep.in);
+  $("#lastRep").classList.toggle("quiet", S.rep.in);
+  $("#holdNum").textContent = Math.min(S.hold, 99).toFixed(1);
+
+}
+
+// ---------- figure -------------------------------------------------------------------------
+const mq = matchMedia("(max-width: 900px)");
+function fitView() { $("#fig").setAttribute("viewBox", mq.matches ? "0 90 740 554" : "0 24 1060 616"); }
+mq.addEventListener("change", () => { fitView(); S.sig = ""; });
+function pt(th, a, b) { const s = Math.sin(th), c = Math.cos(th); return [K.x + a * s + b * c, K.y + a * c - b * s]; }
+const P = a => a.map(v => v.toFixed(1)).join(",");
+const rad = d => d * Math.PI / 180;
+function limbPath(deg) {
+  const t = rad(deg), q = (a, b) => P(pt(t, a, b));
+  return `M${q(-6, 24)} L${q(L, 13)} L${q(L - 6, 92)} Q${q(L + 6, 104)} ${q(L + 18, 96)} L${q(L + 22, -16)} Q${q(L + 6, -26)} ${q(L - 12, -15)} Q${q(L * .4, -44)} ${q(4, -28)} Z`;
+}
+// the target is a threshold: the red line sits at target minus tolerance, and anything past it counts
+function zone(p) {
+  const th = Math.max(0, p.target_deg - p.tol_deg), a = rad(th), b = rad(Math.max(100, th + 10)), R = 360;
+  const at = (ang, r) => [K.x + r * Math.sin(ang), K.y + r * Math.cos(ang)];
+  return { th, beyond: `M${K.x},${K.y} L${P(at(a, R))} A${R},${R} 0 0 0 ${P(at(b, R))} Z`, line: `M${P(at(a, 58))} L${P(at(a, R + 14))}`, end: at(a, R + 14) };
+}
+function drawWedge() {
+  const show = S.form && PLAN_ACTIVE.includes(phase()), p = S.form || { target_deg: 50, tol_deg: 5 }, z = zone(p);
+  $("#beyond").setAttribute("d", z.beyond); $("#wedgeArc").setAttribute("d", z.line);
+  for (const id of ["#beyond", "#wedgeArc"]) $(id).classList.toggle("hide", !show);
+  const ly = Math.min(560, Math.max(340, z.end[1]));
+  $("#ldRange").setAttribute("points", show ? `${P(z.end)} ${LX - 40},${ly} ${LX},${ly}` : "");
+  $("#tRange").setAttribute("y", ly - 14); $("#vRange").setAttribute("y", ly + 50);
+}
+function marker(r, x, y, cls, R = mq.matches ? 16 : 13) {
+  const c = `cx="${x}" cy="${y}"`, h = R * .5, v = R * .3;
+  if (!r) return cls === "now" ? `<circle class="mk mk-now" ${c} r="${R}"/><circle class="mk-dot" ${c} r="${R * .35}"/>` : `<circle class="mk mk-todo" ${c} r="${R * .35}"/>`;
+  const pop = cls === "pop" ? " mk-pop" : "";
+  if (r.verdict === "good") return `<circle class="mk mk-good${pop}" ${c} r="${R}"/>`;
+  if (r.verdict === "short") return `<g class="${pop}"><circle class="mk mk-ring" ${c} r="${R}"/><path class="mk-fill" d="M${x - R},${y} A${R},${R} 0 0 0 ${x + R},${y} Z"/></g>`;
+  if (r.verdict === "rushed") return `<g class="${pop}"><circle class="mk mk-ring" ${c} r="${R}"/><path class="mk-tick" d="M${x - h},${y - v} h${2 * h} M${x - h},${y + v} h${2 * h}"/></g>`;
+  return `<circle class="mk mk-ring mk-gap${pop}" ${c} r="${R}"/>`;
+}
+function drawMarkers(pop) {
+  const ph = phase(), show = S.form && PLAN_ACTIVE.includes(ph), g = $("#markers");
+  if (!show) { g.innerHTML = ""; $("#ldRep").setAttribute("points", ""); return; }
+  const n = Math.min(S.form.reps, 15), span = Math.min(150, 30 * (n - 1)), reps = ph === "complete" ? S.done.reps : S.reps;
+  let html = "";
+  for (let i = 0; i < n; i++) {
+    const a = rad(270 - span / 2 + (n > 1 ? span * i / (n - 1) : 0));
+    const RA = mq.matches ? 142 : 134, x = +(K.x + RA * Math.cos(a)).toFixed(1), y = +(K.y + RA * Math.sin(a)).toFixed(1);
+    html += marker(reps[i], x, y, pop === i + 1 ? "pop" : ph === "reps" && i === reps.length ? "now" : "");
+  }
+  g.innerHTML = html;
+  $("#ldRep").setAttribute("points", `${K.x + 24},${K.y - 146} ${K.x + 150},80 ${LX},80`);
+}
+// Marey-style strobe (computed by core.py): the lift every quarter second, so speed reads as spacing
+const strobeSVG = angles => angles.map((d, i) => { const t = rad(d), k = pt(t, 30, 0), a = pt(t, L, 0), f = pt(t, L, 80);
+  return `<line x1="${k[0].toFixed(1)}" y1="${k[1].toFixed(1)}" x2="${a[0].toFixed(1)}" y2="${a[1].toFixed(1)}" opacity="${(.45 + .45 * (i + 1) / angles.length).toFixed(2)}"/><line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${f[0].toFixed(1)}" y2="${f[1].toFixed(1)}" opacity="${(.35 + .4 * (i + 1) / angles.length).toFixed(2)}"/>`; }).join("");
+function showGhost(rep) {
+  $("#ghost").setAttribute("d", limbPath(rep.peak_deg));
+  $("#strobe").innerHTML = strobeSVG(rep.strobe || []);
+  const toe = pt(rad(rep.peak_deg), L + 18, 96), ly = $("#vRange").getAttribute("y") > 470 ? 352 : 590;
+  $("#ldLast").setAttribute("points", `${P(toe)} ${LX - 40},${ly} ${LX},${ly}`);
+  $("#tLast").setAttribute("y", ly - 14); $("#vLast").setAttribute("y", ly + 38); $("#uLast").setAttribute("y", ly + 72);
+  $("#vLast").textContent = repCopy(rep, S.form).short;
+  $("#uLast").textContent = rep.verdict === "rushed" ? `${Math.min(rep.ext_s, rep.ret_s).toFixed(1)} s ${rep.ext_s < S.form.min_ext_s ? "up" : "down"}` : rep.verdict === "short" ? `${Math.round(rep.peak_deg)}°` : `held ${rep.hold_s.toFixed(1)} s`;
+  S.ghost = repCopy(rep, S.form).note; S.sig = "";
+  $("#ghostG").classList.add("on");
+}
+function clearGhost() {
+  if (!S.ghost) return;
+  $("#ghostG").classList.remove("on"); S.ghost = null; S.sig = "";
+}
+function setHTML(el, html) { if (el._h !== html) { el.innerHTML = html; el._h = html; } }
+function drawFigure() {
+  requestAnimationFrame(drawFigure);
+  const ph = phase(), live = S.live && !["offline", "connecting", "unplugged", "rest", "calibrating"].includes(ph);
+  const a = live ? S.angle : 0, p = S.form, recording = ph === "reps";
+  const sig = [ph, a.toFixed(1), S.hold.toFixed(1), S.reps.length, S.rep.in, p && FIELDS.map(f => p[f]).join("/"), S.done && S.done.id, mq.matches].join("|");
+  if (sig === S.sig) return;   // nothing changed: skip the DOM work this frame
+  S.sig = sig;
+  const t = rad(a);
+  $("#limb").setAttribute("d", limbPath(a));
+  const k = pt(t, 10, 2), ank = pt(t, L - 6, 2), s = pt(t, L * .38, 18), tib = $("#tibia");
+  tib.setAttribute("x1", k[0]); tib.setAttribute("y1", k[1]); tib.setAttribute("x2", ank[0]); tib.setAttribute("y2", ank[1]);
+  $("#sensor").setAttribute("transform", `translate(${P(s)}) rotate(${-a})`);
+  $("#ldSensor").setAttribute("points", `${P(s)} ${LX - 40},300 ${LX},300`);
+  const frac = recording && p && p.hold_s ? Math.min(1, S.hold / p.hold_s) : 0;
+  $("#holdArc").setAttribute("stroke-dasharray", `${(frac * 289).toFixed(1)} 289`);
+  $("#holdArc").style.opacity = frac > 0 ? 1 : 0;
+  const showPlan = p && PLAN_ACTIVE.includes(ph), done = ph === "complete";
+  $("#ldHold").setAttribute("points", showPlan ? `${K.x + 50},${K.y - 18} ${K.x + 230},198 ${LX},198` : "");
+  for (const id of ["#lbHold", "#lbRep", "#lbRange"]) $(id).classList.toggle("hide", !showPlan);
+  const n = done ? S.done.reps.length : S.reps.length;
+  const repNow = recording ? Math.min(n + 1, p.reps) : n;   // the rep you are on, everywhere
+  if (p) {
+    const repTxt = ph === "plan" ? "–" : String(repNow);
+    const lr = recording && !S.rep.in && S.reps.at(-1);
+    const holdTxt = done ? S.done.summary.mean_hold.toFixed(1) : lr ? lr.hold_s.toFixed(1) : (recording ? Math.min(S.hold, 99) : 0).toFixed(1);
+    const holdU = done ? "s average" : lr ? "s last rep" : `of ${p.hold_s} s`;
+    setHTML($("#vRep"), `${repTxt} <tspan class="f-unit">of ${p.reps}</tspan>`);
+    setHTML($("#vHold"), `${holdTxt} <tspan class="f-unit">${holdU}</tspan>`);
+    setHTML($("#rRep"), `${repTxt} <span>of ${p.reps}</span>`);
+    setHTML($("#rHold"), `${holdTxt} <span>${holdU}</span>`);
+  }
+  const lastR = recording && !S.rep.in && S.reps.at(-1), deg = Math.round(a);
+  const rangeTxt = done ? `${Math.round(S.done.summary.mean_peak)}°` : lastR ? `${Math.round(lastR.peak_deg)}°` : `${deg}°`, rangeU = done ? "average" : lastR ? "last rep" : `red line ${p ? line(p) : ""}°`;
+  setHTML($("#vRange"), showPlan ? `${rangeTxt} <tspan class="f-unit">${rangeU}</tspan>` : "");
+  setHTML($("#rRange"), showPlan ? `${rangeTxt} <span>${rangeU}</span>` : "–");
+  const cap = caption(ph, deg, repNow);
+  if ($("#capText").textContent !== cap) $("#capText").textContent = cap;
+  if (recording) updateCue();
+}
+function caption(ph, deg, repNow) {
+  const p = S.form;
+  switch (ph) {
+    case "offline": case "connecting": return "Waiting for the brace.";
+    case "unplugged": return "The brace is not connected.";
+    case "rest": case "restAgain": return "Seated, thigh supported on the chair, foot relaxed. The motion sensor rides on the shin; the vibration motor sits on the thigh.";
+    case "calibrating": return "Hold still while the rest position is measured.";
+    case "plan": return `The red line sits at ${line(p)}°: your ${p.target_deg}° target, give or take ${p.tol_deg}°. Any rep that passes it counts.`;
+    case "reps": return S.ghost && deg <= 10 ? `Dashed: ${S.ghost.replace(/^rep (\d+): /, "rep $1 at its peak, ")}. The lines show the lift a quarter second apart.`
+      : `Seated knee extension, rep ${repNow} of ${p.reps}. ${S.hold > 0 ? "Holding past the red line." : deg > 10 ? `Shin raised ${deg}°.` : "At rest."}`;
+    case "complete": { const d = S.done; return `Set complete: ${plural(d.reps.length, "rep")}, ${d.reps.filter(r => r.reached).length} past the red line.`; }
+  }
+  return "";
+}
+
+// ---------- this set -----------------------------------------------------------------------
+function renderSet() {
+  const ph = phase(), d = ph === "complete" ? S.done : null;
+  const show = ph === "reps" || (d && d.reps.length);
+  $("#set").hidden = !show;
+  if (!show) return;
+  const p = d ? d.profile : S.form, reps = d ? d.reps : S.reps, n = d ? reps.length : p.reps;
+  $("#setNote").textContent = d ? "Each figure is your leg at the top of that rep." : `${planSentence(p)} Results land here as you go.`;
+  let rows = "";
+  for (let i = 0; i < n; i++) {
+    const r = reps[i];
+    if (!r) { rows += `<tr><td>${i + 1}</td><td class="todo">–</td><td class="todo">–</td><td class="todo">–</td><td class="todo">–</td><td class="l todo">${i === reps.length && ph === "reps" ? "Up next" : "To come"}</td></tr>`; continue; }
+    const c = repCopy(r, p), ok = r.verdict === "good";
+    rows += `<tr class="${S.landed === r.n && ph === "reps" ? "landed" : ""}"><td>${r.n}</td><td>${Math.round(r.peak_deg)}°</td><td>${r.ext_s.toFixed(1)} s</td><td>${r.hold_s.toFixed(1)} s</td><td>${r.ret_s.toFixed(1)} s</td>
+      <td class="l"><span class="res ${ok ? "ok" : ""}">${icon(VICON[r.verdict])}${c.short}</span></td></tr>`;
+  }
+  $("#repRows").innerHTML = rows;
+  S.landed = null;
+  const sp = $("#specimen");
+  sp.hidden = !d;
+  if (d && sp.dataset.id !== d.id) { sp.dataset.id = d.id; sp.innerHTML = reps.map(r => `<figure>${mini(r, p)}<figcaption><i>Rep ${r.n}</i>${Math.round(r.peak_deg)}°, ${repCopy(r, p).short.toLowerCase()}</figcaption></figure>`).join(""); }
+}
+function mini(r, p) {
+  const z = zone(p);
+  return `<svg viewBox="0 100 760 520" aria-hidden="true"><path class="f-wedge f-beyond" d="${z.beyond}"/><path class="f-wedge-arc" d="${z.line}"/>
+    <path class="f-line" d="M8,204 C140,192 260,202 346,226"/><path class="f-line" d="M8,292 C140,300 246,290 312,270"/>
+    <g class="f-strobe">${strobeSVG(r.strobe || [])}</g><path class="f-limb" d="${limbPath(r.peak_deg)}"/><circle class="f-cap" cx="338" cy="244" r="15"/>${marker(r, 330, 132, "", 26)}</svg>`;
+}
+
+// ---------- progress -----------------------------------------------------------------------
 async function loadHistory() {
-  history = await api("/api/sessions");
-  const rows = history.filter(s => s.summary && s.summary.reps);
-  $("history").innerHTML = rows.map((s, i) => {
-    const m = s.summary, prev = rows[i - 1]?.summary;
-    const d = prev ? m.mean_peak - prev.mean_peak : null;
-    return `<tr><td>${new Date(s.started * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
-      <td class="l">${esc(s.profile.name)}</td><td class="l">${s.label || ""}</td><td>${m.reps}</td><td>${m.mean_peak}</td><td>${m.sd_peak}</td>
-      <td>${m.mean_ext}</td><td>${m.mean_hold}</td><td>${m.mean_ret}</td><td>${m.pct_reached}</td><td>${m.pct_good}</td>
-      <td class="delta ${d > 0 ? "v-good" : d < 0 ? "v-short" : ""}">${d === null ? "" : (d > 0 ? "+" : "") + d.toFixed(1) + "° vs prev"}</td></tr>`;
-  }).reverse().join("");
-  draw();
+  const h = await fetch("/api/sessions").then(r => r.json()).catch(() => null);
+  if (h) S.history = h.filter(s => s.summary && s.summary.reps);
+  renderProgress();
 }
-
-// --- drawing ---------------------------------------------------------------------------
-function ctx2d(c) {
-  const dpr = devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-  if (c.width !== w * dpr || c.height !== h * dpr) { c.width = w * dpr; c.height = h * dpr; }
-  const x = c.getContext("2d");
-  x.setTransform(dpr, 0, 0, dpr, 0, 0);
-  x.clearRect(0, 0, w, h);
-  return [x, w, h];
-}
-const target = () => Number($("f_target_deg").value) || 0;
-const tol = () => Number($("f_tol_deg").value) || 0;
-
-function drawLeg() {
-  const [x, w, h] = ctx2d($("leg"));
-  const kx = w * 0.42, ky = h * 0.32, L = Math.min(h * 0.6, w * 0.5);
-  const rad = a => a * Math.PI / 180, tip = a => [kx + L * Math.sin(rad(a)), ky + L * Math.cos(rad(a))];
-  // chair + target band
-  x.fillStyle = css("--line"); x.fillRect(kx - L * 0.95, ky + 10, L * 0.85, 10); x.fillRect(kx - L * 0.9, ky + 20, 8, h);
-  x.fillStyle = css("--band"); x.beginPath(); x.moveTo(kx, ky);
-  x.arc(kx, ky, L * 1.05, Math.PI / 2 - rad(target() + tol()), Math.PI / 2 - rad(target() - tol()), false); x.fill();
-  x.setLineDash([5, 5]); x.strokeStyle = css("--accent"); x.lineWidth = 1.5;
-  x.beginPath(); x.moveTo(kx, ky); x.lineTo(...tip(target()).map((v, i) => i ? ky + (v - ky) * 1.05 : kx + (v - kx) * 1.05)); x.stroke(); x.setLineDash([]);
-  // thigh, shin, knee
-  x.lineCap = "round"; x.strokeStyle = css("--muted"); x.lineWidth = 16;
-  x.beginPath(); x.moveTo(kx - L * 0.9, ky); x.lineTo(kx, ky); x.stroke();
-  const reached = angle >= target() - tol();
-  x.strokeStyle = reached ? css("--good") : css("--accent"); x.lineWidth = 14;
-  const [fx, fy] = tip(angle); x.beginPath(); x.moveTo(kx, ky); x.lineTo(fx, fy); x.stroke();
-  x.fillStyle = css("--ink"); x.beginPath(); x.arc(kx, ky, 9, 0, 7); x.fill();
-  x.fillStyle = css("--warn"); x.fillRect(kx + (fx - kx) * 0.35 - 6, ky + (fy - ky) * 0.35 - 6, 12, 12); // IMU
-  x.fillStyle = css("--muted"); x.font = "12px system-ui"; x.fillText(`target ${target()}°`, kx + 8, ky - 10);
-}
-
-function drawChart() {
-  const [x, w, h] = ctx2d($("chart"));
-  const pad = 28, t1 = trace.length ? trace[trace.length - 1][0] : 0, t0 = t1 - 10;
-  const ymax = Math.max(90, target() + 20), Y = a => h - 18 - (h - 26) * a / ymax, X = t => pad + (w - pad) * (t - t0) / 10;
-  x.fillStyle = css("--band"); x.fillRect(pad, Y(target() + tol()), w - pad, Y(target() - tol()) - Y(target() + tol()));
-  x.strokeStyle = css("--line"); x.fillStyle = css("--muted"); x.font = "11px system-ui"; x.lineWidth = 1;
-  for (let a = 0; a <= ymax; a += 30) { x.beginPath(); x.moveTo(pad, Y(a)); x.lineTo(w, Y(a)); x.stroke(); x.fillText(a + "°", 0, Y(a) + 4); }
-  x.fillText("last 10 s", w - 52, h - 3);
-  x.strokeStyle = css("--accent"); x.lineWidth = 2; x.beginPath();
-  trace.forEach(([t, a], i) => t >= t0 && (i ? x.lineTo(X(t), Y(a)) : x.moveTo(X(t), Y(a))));
-  x.stroke();
-}
-
-function drawHistory() {
-  const [x, w, h] = ctx2d($("hist"));
-  const rows = history.filter(s => s.summary && s.summary.reps);
-  x.fillStyle = css("--muted"); x.font = "12px system-ui";
-  if (rows.length < 1) { x.fillText("No saved sets yet. Finish a set to start your progress chart.", 0, 20); return; }
-  const pad = 34, ymax = Math.max(90, ...rows.map(s => s.summary.mean_peak + s.summary.sd_peak + 10));
-  const X = i => pad + 10 + (w - pad - 20) * (rows.length === 1 ? 0.5 : i / (rows.length - 1)), Y = a => h - 22 - (h - 34) * a / ymax;
-  x.strokeStyle = css("--line"); x.lineWidth = 1;
-  for (let a = 0; a <= ymax; a += 30) { x.beginPath(); x.moveTo(pad, Y(a)); x.lineTo(w, Y(a)); x.stroke(); x.fillText(a + "°", 0, Y(a) + 4); }
-  // target per session (dashed), mean range with SD whiskers, dot colour = % good reps
-  x.setLineDash([4, 4]); x.strokeStyle = css("--muted"); x.beginPath();
-  rows.forEach((s, i) => i ? x.lineTo(X(i), Y(s.profile.target_deg)) : x.moveTo(X(i), Y(s.profile.target_deg))); x.stroke(); x.setLineDash([]);
-  x.strokeStyle = css("--accent"); x.lineWidth = 2; x.beginPath();
-  rows.forEach((s, i) => i ? x.lineTo(X(i), Y(s.summary.mean_peak)) : x.moveTo(X(i), Y(s.summary.mean_peak))); x.stroke();
-  rows.forEach((s, i) => {
-    const m = s.summary;
-    x.lineWidth = 1.5; x.beginPath(); x.moveTo(X(i), Y(m.mean_peak - m.sd_peak)); x.lineTo(X(i), Y(m.mean_peak + m.sd_peak)); x.stroke();
-    x.fillStyle = m.pct_good >= 80 ? css("--good") : m.pct_good >= 40 ? css("--warn") : css("--bad");
-    x.beginPath(); x.arc(X(i), Y(m.mean_peak), 5, 0, 7); x.fill();
+function renderProgress() {
+  const rows = S.history;
+  if (!rows) { $("#chart").innerHTML = `<p class="empty">Couldn't load your sets. They'll appear when Rehabify is running.</p>`; return; }
+  const hasSample = rows.some(s => s.sample);
+  $("#progNote").textContent = hasSample ? "Average range per day, against the red line. Hollow points are sample days, included so you can see how progress looks; your own sets follow them." : "Average range per day, against the red line. Several sets on one day share a point.";
+  $("#legend").hidden = !rows.length; $("#lgSample").hidden = !hasSample; $("#histWrap").hidden = !rows.length;
+  if (!rows.length) { $("#chart").innerHTML = `<p class="empty">Your progress line starts after your first set.</p>`; return; }
+  // one point per day: several sets on the same day average into one, weighted by reps
+  const byDay = new Map();
+  for (const s of rows) { const k = new Date(s.started * 1000).toDateString(); (byDay.get(k) || byDay.set(k, []).get(k)).push(s); }
+  const pts = [...byDay.values()].map(g => {
+    const n = g.reduce((a, s) => a + s.summary.reps, 0), mp = g.reduce((a, s) => a + s.summary.mean_peak * s.summary.reps, 0) / n;
+    return { started: g[0].started, sets: g.length, sample: g.every(s => s.sample), profile: g.at(-1).profile,
+      summary: { mean_peak: mp, sd_peak: Math.max(...g.map(s => s.summary.sd_peak)) } };
   });
-  x.fillStyle = css("--muted");
-  x.fillText("mean range ± SD per set · dashed = target · dot: green ≥80% good reps, amber ≥40%, red below", pad, h - 4);
+  const W = Math.max(320, $("#chart").clientWidth), H = W < 600 ? 220 : 260, l = 44, r = 56, t = 16, b = 34;
+  const ymax = Math.max(70, ...pts.map(s => s.summary.mean_peak + s.summary.sd_peak + 6));
+  // points sit at their real time, so gaps between sessions read honestly
+  const t0 = pts[0].started, t1 = pts.at(-1).started, span = Math.max(1, t1 - t0);
+  const X = s => l + (pts.length === 1 ? (W - l - r) / 2 : (W - l - r) * (s.started - t0) / span), Y = v => t + (H - t - b) * (1 - v / ymax);
+  let g = "";
+  for (let v = 0; v <= ymax; v += 20) g += `<line class="c-axis" x1="${l}" x2="${W - r + 20}" y1="${Y(v)}" y2="${Y(v)}"/><text class="c-lab" x="${l - 10}" y="${Y(v) + 4}" text-anchor="end">${v}°</text>`;
+  g += `<polyline class="c-target" points="${pts.map(s => `${X(s)},${Y(s.profile.target_deg - s.profile.tol_deg)}`).join(" ")}"/>`;
+  const line_ = arr => arr.length ? `${arr.map(s => `${X(s)},${Y(s.summary.mean_peak)}`).join(" ")}` : "";
+  g += `<polyline class="c-line c-sample" points="${line_(pts.filter(s => s.sample))}"/><polyline class="c-line" points="${line_(pts.filter(s => !s.sample))}"/>`;
+  let lastLab = -1e9;
+  pts.forEach((s, i) => {
+    const m = s.summary, x = X(s);
+    g += `<line class="c-sd" x1="${x}" x2="${x}" y1="${Y(m.mean_peak - m.sd_peak)}" y2="${Y(m.mean_peak + m.sd_peak)}"/>`;
+    g += `<circle class="c-pt ${s.sample ? "sample" : ""}" cx="${x}" cy="${Y(m.mean_peak)}" r="6"><title>${shortDate(s.started)}: ${Math.round(m.mean_peak)}° average${s.sets > 1 ? ` over ${s.sets} sets` : ""}</title></circle>`;
+    if (x - lastLab > 64 || i === pts.length - 1 && x - lastLab > 40) { g += `<text class="c-lab" x="${x}" y="${H - 10}" text-anchor="middle">${shortDate(s.started)}</text>`; lastLab = x; }
+  });
+  const last = pts.at(-1);
+  g += `<text class="c-val" x="${X(last) + 12}" y="${Y(last.summary.mean_peak) - 10}">${Math.round(last.summary.mean_peak)}°</text>`;
+  $("#chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Average range across ${plural(pts.length, "day")}, from ${Math.round(pts[0].summary.mean_peak)}° to ${Math.round(last.summary.mean_peak)}°.">${g}</svg>`;
+  const cnt = (m, pct) => `${Math.round(m.reps * pct / 100)} of ${m.reps}`;
+  $("#histRows").innerHTML = rows.slice().reverse().map(s => {
+    const m = s.summary;
+    return `<tr><td>${shortDate(s.started)} <span class="t-time">${new Date(s.started * 1000).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span>${s.sample ? `<span class="tag">Sample</span>` : ""}</td><td class="l">${esc(s.profile.name)}</td><td>${Math.round(m.mean_peak)}°</td><td>${cnt(m, m.pct_reached)}</td><td>${cnt(m, m.pct_good)}</td></tr>`;
+  }).join("");
 }
+let rsz; addEventListener("resize", () => { clearTimeout(rsz); rsz = setTimeout(renderProgress, 150); });
 
-function draw() {
-  $("angle").textContent = st.calibrated ? angle.toFixed(0) : "--";
-  $("repN").textContent = reps.length;
-  $("repT").textContent = $("f_reps").value || "–";
-  const ht = Number($("f_hold_s").value) || 0;
-  $("holdS").textContent = hold.toFixed(1); $("holdT").textContent = ht;
-  $("holdBar").firstElementChild.style.width = Math.min(100, ht ? 100 * hold / ht : 0) + "%";
-  $("holdBar").classList.toggle("done", ht && hold >= ht);
-  drawLeg(); drawChart(); drawHistory();
-}
-(function loop() { draw(); requestAnimationFrame(loop); })();
+// nav highlight
+for (const sec of [$("#session"), $("#progress")]) new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  for (const a of document.querySelectorAll(".bar nav a")) {
+    if (a.getAttribute("href") === "#" + e.target.id) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current");
+  }
+}), { rootMargin: "-45% 0px -50% 0px" }).observe(sec);
 
-loadProfiles(); loadHistory(); renderReps();
+// boot
+fitView();
+(async () => {
+  let pr = await fetch("/api/profiles").then(r => r.json()).catch(() => null);
+  if (!Array.isArray(pr) || !pr.length) pr = [{ name: "Quick demo", target_deg: 50, tol_deg: 5, hold_s: 2, min_ext_s: 1, min_ret_s: 1, reps: 5 }];
+  S.profiles = pr; if (!S.form) S.form = { ...pr[0] };
+  render(); loadHistory();
+})();
+setInterval(() => { if (!S.online) render(); }, 1000);
+requestAnimationFrame(drawFigure);
 </script>
 </body>
 </html>

@@ -1,22 +1,37 @@
-# RehaKnee
+# Rehabify
 
-A knee brace with one BMI270 IMU on the shin, an Arduino R4 WiFi, and a DRV2605L vibration driver. The Arduino streams raw IMU data over USB to a small Python server, on a Raspberry Pi 4B or a laptop. The server estimates shin rotation, counts reps against therapist targets, triggers vibration feedback, and serves a live dashboard.
+Rehabify turns an ordinary knee brace into a rehabilitation assistant. It doesn't just count your reps: it checks each one for **range, pace and hold**, clicks through the brace when you reach your physio's target, and shows your progress between appointments.
 
-```
-BMI270 + DRV2605L --I2C-- Arduino R4 --USB serial-- server.py (Pi/laptop) --SSE--> browser dashboard
-                                      <-- "B<n>" buzz --         |
-                                                         sessions/*.json + *.csv
-```
+![Rehabify mid-rep: the leg drawn like an anatomy plate, holding inside the target zone](screenshots/hero.jpg)
 
-## Run
+## Try it in one minute (no hardware)
 
-No hardware needed:
+You only need Python 3. There's nothing to install.
 
 ```bash
 python3 server.py --sim
 ```
 
-Open http://localhost:8000. You can switch the simulated movement between controlled, short, and rushed from the header.
+Open http://localhost:8000, then:
+
+1. **Set rest position.** The simulated leg is already sitting still.
+2. **Start set.** The plan is straighten to 50°, hold 2 seconds, 5 times.
+3. Press **Good rep**, then **Stop short**, then **Rush it** (or keys 1, 2, 3). Watch the leg, the hold ring and the coaching change for each one.
+4. Finish the set to see your summary, then scroll to **Your progress**. The earlier hollow points are sample sets, shown only in simulator mode.
+
+## How it works
+
+One BMI270 motion sensor on the shin, an Arduino R4 WiFi, and a DRV2605L vibration driver. The Arduino streams raw sensor data over USB to a small Python server, on a Raspberry Pi 4B or a laptop. The server estimates shin rotation from gravity and the gyro, grades each rep against the physio's targets, triggers the vibration, and serves the page.
+
+```
+BMI270 + DRV2605L --I2C-- Arduino R4 --USB serial-- server.py (Pi/laptop) --SSE--> browser
+                                      <-- "B<n>" buzz --         |
+                                                         sessions/*.json + *.csv
+```
+
+Rehabify reports an *estimated movement range* from the rest position you set, for seated knee extensions with the thigh supported. It doesn't diagnose or replace a physiotherapist. Walking analysis is where we'd like to take it next.
+
+## Run with the brace
 
 With the brace plugged in:
 
@@ -38,7 +53,7 @@ Open `http://<pi-hostname>.local:8000` from any laptop on the same network.
 
 ## Arduino
 
-Flash `arduino/rehaknee/rehaknee.ino`. It needs two libraries from the Library Manager: SparkFun BMI270 and Adafruit DRV2605. Check the wiring note at the top of the file: the BMI270 is a 3.3 V part.
+Flash `arduino/rehabify/rehabify.ino`. It needs two libraries from the Library Manager: SparkFun BMI270 and Adafruit DRV2605. Check the wiring note at the top of the file: the BMI270 is a 3.3 V part.
 
 The Serial Monitor at 115200 should show `# ready` and then CSV lines. Close the Serial Monitor before you start the server, because only one program can hold the port.
 
@@ -73,7 +88,7 @@ All angles are an **estimated movement range** measured from the calibrated rest
 | `train.py` | Classifier training with a session-level split |
 | `profiles.json` | Exercise profiles |
 | `sessions/` | One `.json` (reps and summary) and one `.csv` (raw 100 Hz IMU data plus angle) per set |
-| `arduino/rehaknee/` | Firmware |
+| `arduino/rehabify/` | Firmware |
 
 ## Tuning knobs
 

@@ -1,4 +1,4 @@
-"""RehaKnee signal processing: tilt filter, rep detection, per-rep metrics, simulator.
+"""Rehabify signal processing: tilt filter, rep detection, per-rep metrics, simulator.
 Run `python3 core.py` for the self-check."""
 import math
 import random
@@ -87,6 +87,17 @@ def rep_metrics(trace, p):
         "mean_vel": round(sum(vel) / len(vel), 1),
         "t_start": t[0],
     }
+    # the lift sampled every 0.25 s up to the peak; the page draws it as stroboscopic lines
+    i_pk = next(i for i, x in enumerate(a) if x >= peak - 1.0)   # end of the lift, not the noisiest hold sample
+    strobe, k, tt = [], 0, t[0]
+    while tt <= t[i_pk] + 1e-9:
+        while k < i_pk and t[k + 1] < tt:
+            k += 1
+        j = min(k + 1, i_pk)
+        f = (tt - t[k]) / (t[j] - t[k]) if t[j] > t[k] else 0.0
+        strobe.append(round(a[k] + (a[j] - a[k]) * max(0.0, min(1.0, f)), 1))
+        tt += 0.25
+    rep["strobe"] = strobe
     rep["features"] = [rep[f] for f in FEATURES]
     rep["reached"] = peak >= band
     rep["held"] = hold >= p["hold_s"]
@@ -163,14 +174,14 @@ def summarize(reps):
 # --- simulator: stands in for the brace until the hardware is ready -------------------------
 
 SIM_STYLES = {  # peak deg, extend s, hold s, return s
-    "controlled": (65, 2.5, 3.0, 2.5),
+    "controlled": (62, 2.5, 2.2, 2.5),
     "short": (40, 2.5, 2.0, 2.5),
     "rushed": (60, 0.6, 0.3, 0.6),
 }
 
 
-def sim_stream(get_style, hz=100, seed=None):
-    """Yields ((t_ms, ax, ay, az, gx, gy, gz), true_angle) forever. Starts with ~2 s of rest.
+def sim_stream(get_style, hz=100, seed=None, rest=(1.8, 2.5)):
+    """Yields ((t_ms, ax, ay, az, gx, gy, gz), true_angle) forever. Each rep starts with `rest` s of rest.
     The sensor is mounted rotated 30 deg off the hinge to prove the filter doesn't care."""
     rnd = random.Random(seed)
     dt, t, prev = 1.0 / hz, 0.0, 0.0
@@ -183,7 +194,7 @@ def sim_stream(get_style, hz=100, seed=None):
     while True:
         style = get_style()  # None = leg resting
         peak, ext, hold, ret = (x * rnd.uniform(0.9, 1.1) for x in SIM_STYLES[style or "controlled"])
-        segs = ((rnd.uniform(1.8, 2.5), 0, 0), (ext, 0, 1), (hold, 1, 1), (ret, 1, 0)) if style else ((0.1, 0, 0),)
+        segs = ((rnd.uniform(*rest), 0, 0), (ext, 0, 1), (hold, 1, 1), (ret, 1, 0)) if style else ((0.1, 0, 0),)
         for dur, f0, f1 in segs:
             n = max(1, int(dur * hz))
             for k in range(n):
@@ -219,6 +230,8 @@ def _selfcheck():
         got = [r["verdict"] for r in rc.reps]
         assert got == [verdict] * 5, (style, got)
         assert events.count("set_done") == 1
+        st = rc.reps[0]["strobe"]   # quarter-second samples of the lift: rushed reps get few, rising to the peak
+        assert st == sorted(st) and (len(st) <= 3 if style == "rushed" else len(st) >= 4), (style, st)
         assert events.count("target") == (5 if style != "short" else 0), (style, events)
         print(f"{style:10s} max err {err:.2f} deg  verdicts {got[0]}  {summarize(rc.reps)}")
     print("core self-check OK")

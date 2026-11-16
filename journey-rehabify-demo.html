@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rehabify demo journey</title>
+<style>
+:root {
+  --bg: #fafafc; --surface: #ffffff; --fg: #18182b; --fg-muted: #65657a;
+  --border: #d8d8e4; --accent: #4338ca;
+  --sans: "Hanken Grotesk", Inter, system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px;
+  --s5: 20px; --s6: 24px; --s7: 32px; --s8: 48px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #18182b; --surface: #1f1f36; --fg: #f0f0f8; --fg-muted: #8888a8;
+    --border: #2a2a44; --accent: #7c6ff0;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #18182b; --surface: #1f1f36; --fg: #f0f0f8; --fg-muted: #8888a8;
+  --border: #2a2a44; --accent: #7c6ff0;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--sans); background: var(--bg); color: var(--fg);
+  padding: var(--s7); line-height: 1.5; margin: 0;
+}
+.visual-diagram {
+  margin: 0; padding: var(--s5);
+  background: var(--surface); border-radius: 8px;
+  border: 1px solid var(--border); overflow-x: auto;
+}
+.visual-label {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  color: var(--fg-muted); letter-spacing: 0.06em;
+  margin-bottom: var(--s4); text-transform: uppercase;
+}
+.flow-grid {
+  display: grid;
+  grid-template-columns: auto 16px 1fr 16px 1fr 16px 1fr 16px 1fr 16px 1fr;
+  align-items: center; padding: var(--s3) 0; row-gap: var(--s2);
+}
+.flow-node {
+  padding: var(--s2); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 4px;
+  text-align: center; min-width: 0;
+}
+.flow-node-step { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--accent); margin-bottom: 1px; }
+.flow-node-label { font-size: 11px; font-weight: 600; color: var(--fg); }
+.flow-node-detail { font-size: 10px; color: var(--fg-muted); margin-top: 1px; }
+.flow-node-icon { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--accent); }
+.flow-start { border-color: var(--accent); border-width: 2px; padding: var(--s2) var(--s3); }
+.flow-end { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--bg)); }
+.flow-arrow { height: 1px; background: var(--border); position: relative; }
+.flow-arrow::after {
+  content: ''; position: absolute; right: 0; top: -3px;
+  border-left: 4px solid var(--border);
+  border-top: 3px solid transparent; border-bottom: 3px solid transparent;
+}
+.flow-gate { text-align: center; padding-top: var(--s1); }
+.flow-gate-connector { width: 1px; height: 10px; background: var(--border); margin: 0 auto; }
+.flow-gate-diamond {
+  width: 10px; height: 10px; background: var(--surface);
+  border: 1px solid var(--border);
+  transform: rotate(45deg); margin: 0 auto 4px;
+}
+.flow-gate-label { font-size: 10px; font-weight: 600; color: var(--fg-muted); }
+.flow-gate-action { font-size: 10px; color: var(--fg-muted); opacity: 0.6; }
+.flow-metric { margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--border); font-size: 11px; }
+.flow-metric-value { font-weight: 600; color: var(--accent); }
+.flow-metric-label { color: var(--fg-muted); }
+main { max-width: 980px; margin: 0 auto; }
+h1 { font-size: 24px; margin: 0 0 var(--s4); }
+h2 { font-size: 17px; margin: var(--s8) 0 var(--s3); }
+h3 { font-size: 14px; margin: var(--s5) 0 var(--s1); }
+p, li { max-width: 72ch; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; vertical-align: top; padding: var(--s2); border-bottom: 1px solid var(--border); }
+th { color: var(--fg-muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+<h1>Rehabify: the judge's first set</h1>
+
+<div class="visual-diagram">
+  <div class="visual-label">Flow: first set on the simulator</div>
+  <div class="flow-grid">
+    <div class="flow-node flow-start">
+      <div class="flow-node-icon">$</div>
+      <div class="flow-node-label">server.py --sim</div>
+      <div class="flow-node-detail">from the README</div>
+    </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node">
+      <div class="flow-node-step">1</div>
+      <div class="flow-node-label">Set rest position</div>
+      <div class="flow-node-detail">hold still 2 s</div>
+    </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node">
+      <div class="flow-node-step">2</div>
+      <div class="flow-node-label">Today's plan</div>
+      <div class="flow-node-detail">50° · hold 2 s · 5 reps</div>
+    </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node">
+      <div class="flow-node-step">3</div>
+      <div class="flow-node-label">Do the reps</div>
+      <div class="flow-node-detail">live leg, buzz at target</div>
+    </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node">
+      <div class="flow-node-step">4</div>
+      <div class="flow-node-label">Rep feedback</div>
+      <div class="flow-node-detail">range, pace, hold</div>
+    </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node flow-end">
+      <div class="flow-node-step">5</div>
+      <div class="flow-node-label">Set complete</div>
+      <div class="flow-node-detail">vs last set, progress</div>
+    </div>
+    <div class="flow-gate" style="grid-column: 3; grid-row: 2;">
+      <div class="flow-gate-connector"></div>
+      <div class="flow-gate-diamond"></div>
+      <div class="flow-gate-label">Leg moved?</div>
+      <div class="flow-gate-action">try again, same step</div>
+    </div>
+    <div class="flow-gate" style="grid-column: 7; grid-row: 2;">
+      <div class="flow-gate-connector"></div>
+      <div class="flow-gate-diamond"></div>
+      <div class="flow-gate-label">Simulator?</div>
+      <div class="flow-gate-action">judge taps good / short / rushed</div>
+    </div>
+    <div class="flow-gate" style="grid-column: 9; grid-row: 2;">
+      <div class="flow-gate-connector"></div>
+      <div class="flow-gate-diamond"></div>
+      <div class="flow-gate-label">Reps left?</div>
+      <div class="flow-gate-action">back to step 3</div>
+    </div>
+  </div>
+  <div class="flow-metric">
+    <span class="flow-metric-value">About 60 s, 7 clicks</span>
+    <span class="flow-metric-label">from opening the page to a finished five-rep set on the simulator</span>
+  </div>
+</div>
+
+<h2>Problem statement</h2>
+<p>A judge opens a GitHub link, runs one command, and has about a minute of attention. They need to see that Rehabify does more than count: every rep is checked for range, pace and hold, and the patient feels it through the brace. Today the page opens on a setup form, the simulated leg moves by itself, and good and bad reps only differ if you find a dropdown in the header.</p>
+
+<h2>Who walks this path</h2>
+<table>
+  <tr><th>Visitor</th><th>Context</th><th>What changes</th></tr>
+  <tr><td>Judge on the simulator</td><td>Laptop, no brace, curious, short on time</td><td>Performs each rep with three buttons (or keys 1, 2, 3) and sees each style answered differently</td></tr>
+  <tr><td>Patient with the brace</td><td>Seated at home, phone or laptop propped nearby, possibly sore</td><td>No rep buttons; the real leg drives everything; vibration is the main feedback, the screen is glanced at</td></tr>
+  <tr><td>Team on demo video</td><td>Screen recording with the brace on camera</td><td>Same as patient; the leg on screen must match the real leg closely enough to read in a split frame</td></tr>
+</table>
+
+<h2>Screen by screen</h2>
+<p>All steps live on one page. The live leg stays in place throughout; the panel beside it (below it on a phone) changes with the step, so the visitor never loses the object that matters.</p>
+
+<h3>0. Opening the page</h3>
+<p>Why it exists: the first impression is the claim. The live leg is already on screen, resting, with the brace connection shown plainly. The panel offers one action: set your rest position. While the event stream connects, the leg is drawn in a muted resting state rather than a spinner.</p>
+
+<h3>1. Set rest position</h3>
+<p>Why: every angle is measured from rest, so this step is the foundation and must feel quick. Instruction: sit tall, thigh supported, foot relaxed. A 2-second ring fills around the knee while the visitor holds still. Success: "Rest position set." Failure (leg moved): "You moved a little. Let's try that again," with the same button. Nothing else on the page asks for attention until this is done.</p>
+
+<h3>2. Today's plan</h3>
+<p>Why: the targets come from the physiotherapist, so the patient confirms rather than configures. The plan reads as a sentence: "Straighten to 50°, hold for 2 seconds, 5 times." Adjust opens the six fields inline; the plan picker sits inside it. Training-data labelling lives behind a separate "Record training data" disclosure, out of the judge's path. Primary action: Start set.</p>
+
+<h3>3. Do the reps</h3>
+<p>Why: this is the moment Rehabify is felt. The leg rises; the target zone on its arc glows as the shin enters it; the brace clicks; a hold arc fills; a double click marks the hold. Rep progress shows as segments of a ring, one per rep, so the set's progress is readable at a glance. On the simulator, three buttons perform one rep each: "Good rep", "Stop short", "Rush it". The leg rests between presses, so the judge controls the pace of the demo.</p>
+
+<h3>4. Rep feedback</h3>
+<p>Why: understanding comes after the movement, never during it. When a rep ends, its ring segment fills in a colour that matches the result and a short line appears: "Rep 3: full range, steady, held 2.4 s." A short rep reads "Rep 4: 41° of your 50°. Ease a little further next time." A rushed rep reads "Rep 5: that one was quick. Take about 2 seconds on the way up." Range, pace and hold are shown as three plain checks, then the detail table below.</p>
+
+<h3>5. Set complete</h3>
+<p>Why: closure and progress. The ring completes, the brace buzzes, and the summary leads with what went well, then what to work on, then the comparison with the previous set ("6° more range than Tuesday"). Actions: Start another set, and the progress chart below for the longer view.</p>
+
+<h2>States on the path</h2>
+<table>
+  <tr><th>State</th><th>What the visitor sees</th></tr>
+  <tr><td>Connecting</td><td>Page renders immediately with the leg resting and "Connecting to your brace…"</td></tr>
+  <tr><td>Server offline</td><td>"Rehabify isn't running. Start it with python3 server.py --sim, then this page reconnects by itself." Leg dims; actions disabled.</td></tr>
+  <tr><td>Brace unplugged</td><td>"Brace not found. Plug it in by USB; Rehabify will pick it up." A set in progress pauses and resumes on reconnect.</td></tr>
+  <tr><td>Not calibrated</td><td>Step 1 is the only action.</td></tr>
+  <tr><td>Calibrating</td><td>Ring fills for 2 s; "Hold still".</td></tr>
+  <tr><td>Calibration failed</td><td>"You moved a little. Let's try that again."</td></tr>
+  <tr><td>Ready</td><td>Plan sentence and Start set.</td></tr>
+  <tr><td>Exercising, no reps yet</td><td>"Straighten your knee slowly until you feel the click."</td></tr>
+  <tr><td>Rep in progress, holding</td><td>Hold arc filling; seconds counting up.</td></tr>
+  <tr><td>Rep done</td><td>Segment fills; one-line result.</td></tr>
+  <tr><td>Set complete</td><td>Summary with comparison.</td></tr>
+  <tr><td>Empty history</td><td>"Your progress line starts after your first set."</td></tr>
+  <tr><td>Error from an action</td><td>Inline message beside the button that failed, in plain words, with what to do.</td></tr>
+</table>
+
+<h2>Interaction specifications</h2>
+<ul>
+  <li>Live leg updates at 25 frames per second from the stream, with no easing on the angle itself: it must feel attached to the body.</li>
+  <li>Haptic events (target, hold, set done) also show as a visual pulse on the knee at the same instant, so the vibration is visible on a video.</li>
+  <li>Panel changes between steps cross-fade and shift by a few pixels within 250 ms; no motion when the visitor prefers reduced motion.</li>
+  <li>Keyboard: every action reachable by Tab with a visible focus ring; on the simulator, keys 1, 2, 3 perform a good, short or rushed rep; Space starts and stops a set.</li>
+  <li>Rep results are announced to screen readers through a polite live region: "Rep 3 of 5, good: full range, steady, held 2.4 seconds."</li>
+</ul>
+
+<h2>Success criteria</h2>
+<ul>
+  <li>A first-time visitor finishes a five-rep set on the simulator without reading anything but the page.</li>
+  <li>After one short and one rushed rep, the visitor can say what each looked like and why it was flagged.</li>
+  <li>Every state in the table above can be reached and reads correctly at 375 px, 768 px and desktop, light and dark.</li>
+</ul>
+
+<h2>Open questions</h2>
+<ul>
+  <li>Should the simulator ship sample history, labelled as such, so the progress chart is not empty on first run?</li>
+</ul>
+</main>
+</body>
+</html>

@@ -1,4 +1,4 @@
-"""RehaKnee host server. Reads the brace over USB serial (or a simulator), runs core.py,
+"""Rehabify host server. Reads the brace over USB serial (or a simulator), runs core.py,
 serves the dashboard and a live Server-Sent Events stream. Stdlib only, plus pyserial for the brace.
 
     python3 server.py --sim                 # no hardware
@@ -6,6 +6,7 @@ serves the dashboard and a live Server-Sent Events stream. Stdlib only, plus pys
     python3 server.py --serial /dev/ttyACM0
 """
 import argparse
+import collections
 import csv
 import json
 import os
@@ -19,6 +20,7 @@ import core
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SESSIONS = os.path.join(ROOT, "sessions")
+SAMPLES = os.path.join(ROOT, "sample_sessions")  # shown only in --sim mode, labelled as sample
 PROFILES = os.path.join(ROOT, "profiles.json")
 MODEL = os.path.join(ROOT, "model.pkl")
 HAPTIC = {"target": 1, "hold": 10, "set_done": 14}  # DRV2605 ERM library effects: click, double click, buzz
@@ -47,7 +49,7 @@ class Brace:
         self.source = source
         self.connected = source == "sim"
         self.send = lambda cmd: None  # replaced by the serial/sim source
-        self.sim_style = "controlled"
+        self.sim_queue = collections.deque()  # sim reps the visitor asked for, performed one at a time
         self.filt = core.TiltFilter()
         self.calib_buf = None
         self.calibration = None
@@ -73,7 +75,7 @@ class Brace:
                 "calibrating": self.calib_buf is not None, "recording": self.session is not None,
                 "session": self.session and {k: self.session[k] for k in ("id", "profile", "label")},
                 "reps": self.counter.reps if self.session else [],
-                "sim_style": self.sim_style, "model": self.model is not None}
+                "sim_queue": len(self.sim_queue), "model": self.model is not None}
 
     def set_connected(self, ok):
         self.connected = ok
@@ -156,6 +158,7 @@ class Brace:
     def stop(self):
         with self.lock:
             s, self.session = self.session, None
+            self.sim_queue.clear()
             if not s:
                 raise ValueError("no set running")
             reps = self.counter.reps
@@ -175,7 +178,7 @@ class Brace:
 def run_sim(brace):
     brace.send = lambda cmd: print("haptic", cmd.strip())
     t0 = time.time()
-    for i, (row, _) in enumerate(core.sim_stream(lambda: brace.sim_style if brace.session else None)):
+    for i, (row, _) in enumerate(core.sim_stream(lambda: brace.sim_queue.popleft() if brace.session and brace.sim_queue else None, rest=(0.15, 0.3))):
         brace.on_sample(row)
         delay = t0 + (i + 1) / 100 - time.time()
         if delay > 0:
@@ -225,15 +228,17 @@ def load_profiles():
         return json.load(f)
 
 
-def list_sessions():
+def list_sessions(include_samples):
     out = []
-    if os.path.isdir(SESSIONS):
-        for name in sorted(os.listdir(SESSIONS)):
+    for folder, sample in ((SAMPLES, True), (SESSIONS, False)):
+        if (sample and not include_samples) or not os.path.isdir(folder):
+            continue
+        for name in sorted(os.listdir(folder)):
             if name.endswith(".json"):
-                with open(os.path.join(SESSIONS, name)) as f:
+                with open(os.path.join(folder, name)) as f:
                     s = json.load(f)
-                out.append({k: s.get(k) for k in ("id", "started", "profile", "label", "source", "summary")})
-    return out
+                out.append({**{k: s.get(k) for k in ("id", "started", "profile", "label", "source", "summary")}, "sample": sample})
+    return sorted(out, key=lambda s: s["started"] or 0)
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -259,7 +264,7 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path == "/api/profiles":
             return self.reply(load_profiles())
         if self.path == "/api/sessions":
-            return self.reply(list_sessions())
+            return self.reply(list_sessions(self.brace.source == "sim"))
         if self.path.startswith("/api/sessions/"):
             path = os.path.join(SESSIONS, os.path.basename(self.path) + ".json")
             if not os.path.isfile(path):
@@ -288,8 +293,10 @@ class Handler(SimpleHTTPRequestHandler):
             elif self.path == "/api/sim":
                 if body.get("style") not in core.SIM_STYLES:
                     raise ValueError("unknown style")
-                b.sim_style = body["style"]
-                b.broadcast(b.status())
+                if b.source != "sim" or not b.session:
+                    raise ValueError("Start a set first, then try a rep.")
+                if len(b.sim_queue) < 3:
+                    b.sim_queue.append(body["style"])
             elif self.path == "/api/buzz":  # hardware test button
                 b.buzz(int(body.get("effect", 1)))
             else:
@@ -333,7 +340,7 @@ def main():
     Handler.brace = brace
     ThreadingHTTPServer.daemon_threads = True
     srv = ThreadingHTTPServer(("0.0.0.0", args.port), Handler)
-    print(f"RehaKnee on http://localhost:{args.port}  ({brace.source})")
+    print(f"Rehabify on http://localhost:{args.port}  ({brace.source})")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

@@ -1,5 +1,5 @@
 [
-  {"name": "Demo (quick)", "target_deg": 50, "tol_deg": 5, "hold_s": 2, "min_ext_s": 1.0, "min_ret_s": 1.0, "reps": 5},
+  {"name": "Quick demo", "target_deg": 50, "tol_deg": 5, "hold_s": 2, "min_ext_s": 1.0, "min_ret_s": 1.0, "reps": 5},
   {"name": "Early rehab: gentle", "target_deg": 40, "tol_deg": 5, "hold_s": 3, "min_ext_s": 1.5, "min_ret_s": 1.5, "reps": 10},
   {"name": "Mid rehab", "target_deg": 60, "tol_deg": 5, "hold_s": 5, "min_ext_s": 1.5, "min_ret_s": 1.5, "reps": 10}
 ]

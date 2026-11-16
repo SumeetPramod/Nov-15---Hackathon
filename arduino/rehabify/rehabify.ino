@@ -1,4 +1,4 @@
-// RehaKnee brace firmware: Arduino UNO R4 WiFi + BMI270 + DRV2605L
+// Rehabify brace firmware: Arduino UNO R4 WiFi + BMI270 + DRV2605L
 //
 // Streams 100 Hz CSV over USB serial:   t_ms,ax,ay,az,gx,gy,gz   (accel in g, gyro in deg/s)
 // Accepts commands, one per line:       B<n>   play DRV2605 library effect n (1 = strong click)

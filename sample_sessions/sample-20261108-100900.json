@@ -1,0 +1,177 @@
+{
+ "id": "sample-20261108-100900",
+ "started": 1794161340.0,
+ "ended": 1794161410.0,
+ "profile": {
+  "name": "Quick demo",
+  "target_deg": 50.0,
+  "tol_deg": 5.0,
+  "hold_s": 2.0,
+  "min_ext_s": 1.0,
+  "min_ret_s": 1.0,
+  "reps": 5
+ },
+ "label": null,
+ "source": "sample",
+ "calibration": null,
+ "reps": [
+  {
+   "peak_deg": 46.1,
+   "ext_s": 1.12,
+   "hold_s": 2.98,
+   "ret_s": 1.07,
+   "peak_vel": 32.9,
+   "mean_vel": 12.9,
+   "t_start": 2.209999999999997,
+   "strobe": [
+    10.1,
+    17.2,
+    25.1,
+    32.7,
+    39.1,
+    43.7
+   ],
+   "features": [
+    46.1,
+    1.12,
+    2.98,
+    1.07,
+    32.9,
+    12.9
+   ],
+   "reached": true,
+   "held": true,
+   "paced": true,
+   "verdict": "good"
+  },
+  {
+   "peak_deg": 47.1,
+   "ext_s": 1.01,
+   "hold_s": 2.89,
+   "ret_s": 1.1,
+   "peak_vel": 36.1,
+   "mean_vel": 14.1,
+   "t_start": 10.669999999999817,
+   "strobe": [
+    10.1,
+    18.3,
+    27.3,
+    35.7,
+    42.4
+   ],
+   "features": [
+    47.1,
+    1.01,
+    2.89,
+    1.1,
+    36.1,
+    14.1
+   ],
+   "reached": true,
+   "held": true,
+   "paced": true,
+   "verdict": "good"
+  },
+  {
+   "peak_deg": 46.5,
+   "ext_s": 1.33,
+   "hold_s": 2.73,
+   "ret_s": 1.38,
+   "peak_vel": 26.9,
+   "mean_vel": 12.4,
+   "t_start": 18.99000000000017,
+   "strobe": [
+    10.1,
+    16.1,
+    22.7,
+    29.4,
+    35.5,
+    40.6,
+    44.3
+   ],
+   "features": [
+    46.5,
+    1.33,
+    2.73,
+    1.38,
+    26.9,
+    12.4
+   ],
+   "reached": true,
+   "held": true,
+   "paced": true,
+   "verdict": "good"
+  },
+  {
+   "peak_deg": 48.7,
+   "ext_s": 1.29,
+   "hold_s": 3.24,
+   "ret_s": 1.29,
+   "peak_vel": 29.4,
+   "mean_vel": 13.1,
+   "t_start": 28.07000000000159,
+   "strobe": [
+    10.0,
+    16.6,
+    23.8,
+    31.1,
+    37.7,
+    43.2,
+    46.9
+   ],
+   "features": [
+    48.7,
+    1.29,
+    3.24,
+    1.29,
+    29.4,
+    13.1
+   ],
+   "reached": true,
+   "held": true,
+   "paced": true,
+   "verdict": "good"
+  },
+  {
+   "peak_deg": 47.0,
+   "ext_s": 1.27,
+   "hold_s": 2.74,
+   "ret_s": 1.21,
+   "peak_vel": 29.6,
+   "mean_vel": 13.3,
+   "t_start": 37.110000000001186,
+   "strobe": [
+    10.1,
+    16.4,
+    23.5,
+    30.5,
+    36.9,
+    42.1,
+    45.5
+   ],
+   "features": [
+    47.0,
+    1.27,
+    2.74,
+    1.21,
+    29.6,
+    13.3
+   ],
+   "reached": true,
+   "held": true,
+   "paced": true,
+   "verdict": "good"
+  }
+ ],
+ "summary": {
+  "reps": 5,
+  "mean_peak": 47.1,
+  "sd_peak": 0.9,
+  "mean_ext": 1.2,
+  "sd_ext": 0.12,
+  "mean_hold": 2.92,
+  "mean_ret": 1.21,
+  "pct_reached": 100,
+  "pct_good": 100
+ }
+}
