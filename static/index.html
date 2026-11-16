@@ -240,7 +240,6 @@ footer { padding: var(--s6) var(--s7) var(--s7); color: var(--ink-2); font-size:
 @media (min-width: 901px) and (max-width: 1280px) {
   .f-tag, .f-unit { font-size: 29px; }
   .f-val { font-size: 60px; }
-  .f-val2 { font-size: 48px; }
 }
 /* tablet: single column; the plate keeps its leader labels while there is room */
 @media (max-width: 1100px) {
@@ -356,8 +355,8 @@ footer { padding: var(--s6) var(--s7) var(--s7); color: var(--ink-2); font-size:
           <polyline class="f-leader" points="192,230 192,128 760,128"/>
           <polyline class="f-leader" id="ldSensor" points=""/>
           <g class="f-labels">
-            <text class="f-tag" x="772" y="118">vibration motor</text><text class="f-unit" x="772" y="152">clicks when you reach the target</text>
-            <text class="f-tag" x="772" y="290">motion sensor</text><text class="f-unit" x="772" y="324">measures how far the shin turns</text>
+            <text class="f-tag" x="772" y="118">vibration motor</text><text class="f-unit" x="772" y="152">clicks at your target</text>
+            <text class="f-tag" x="772" y="290">motion sensor</text><text class="f-unit" x="772" y="324">tracks the shin</text>
           </g>
         </g>
         <g class="f-labels">
@@ -638,7 +637,7 @@ function render() {
     v.classList.remove("enter"); void v.offsetWidth; v.classList.add("enter");
     S.viewKey = key; S.err = "";
     if (ph === "reps") renderLastRep(false);
-    if (hadFocus) { const h = v.querySelector("h1"); h.tabIndex = -1; h.focus({ preventScroll: true }); h.scrollIntoView({ block: "nearest" }); }
+    if (hadFocus) { const h = v.querySelector("h1"), b = h.getBoundingClientRect(); h.tabIndex = -1; h.focus({ preventScroll: true }); if (b.top < 0 || b.bottom > innerHeight) h.scrollIntoView({ block: "nearest" }); }
   }
   const tray = ph === "reps" && st && st.source === "sim";
   $("#tray").hidden = !tray; document.body.classList.toggle("has-tray", !!tray);
@@ -733,7 +732,7 @@ async function stop() {
   const reps = S.reps.slice(), profile = { ...S.form };
   const j = await api("/api/stop", {});
   if (j.error) return;
-  S.done = { id: j.id, summary: j.summary, reps, profile }; S.simBusy = null;
+  S.done = { id: j.id, summary: j.summary, reps, profile }; S.simBusy = null; clearGhost();
   const reached = reps.filter(r => r.reached).length, work = reps.find(r => r.verdict !== "good");
   if (reps.length) setTimeout(() => say(`${reached} of ${reps.length} passed the line.${work ? ` Rep ${work.n} to work on: ${repCopy(work, profile).short.toLowerCase()}.` : ""}`), 1500);
   await loadHistory();
@@ -835,7 +834,7 @@ function showGhost(rep) {
   const toe = pt(rad(rep.peak_deg), L + 18, 96), ly = $("#vRange").getAttribute("y") > 470 ? 352 : 590;
   $("#ldLast").setAttribute("points", `${P(toe)} ${LX - 40},${ly} ${LX},${ly}`);
   $("#tLast").setAttribute("y", ly - 14); $("#vLast").setAttribute("y", ly + 38); $("#uLast").setAttribute("y", ly + 72);
-  $("#vLast").textContent = repCopy(rep, S.form).short;
+  $("#vLast").textContent = { good: "Good", short: "Short", rushed: "Quick", "short hold": "Short hold" }[rep.verdict];
   $("#uLast").textContent = rep.verdict === "rushed" ? `${Math.min(rep.ext_s, rep.ret_s).toFixed(1)} s ${rep.ext_s < S.form.min_ext_s ? "up" : "down"}` : rep.verdict === "short" ? `${Math.round(rep.peak_deg)}°` : `held ${rep.hold_s.toFixed(1)} s`;
   S.ghost = repCopy(rep, S.form).note; S.sig = "";
   $("#ghostG").classList.add("on");
