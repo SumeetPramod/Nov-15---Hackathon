@@ -981,7 +981,7 @@ function renderProgress() {
   const cnt = (m, pct) => `${Math.round(m.reps * pct / 100)} of ${m.reps}`;
   $("#histRows").innerHTML = rows.slice().reverse().map(s => {
     const m = s.summary;
-    return `<tr><td>${shortDate(s.started)} <span class="t-time">${new Date(s.started * 1000).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span>${s.sample ? `<span class="tag">Sample</span>` : ""}</td><td class="l">${esc(s.profile.name)}</td><td>${Math.round(m.mean_peak)}°</td><td>${cnt(m, m.pct_reached)}</td><td>${cnt(m, m.pct_good)}</td></tr>`;
+    return `<tr><td>${shortDate(s.started)} <span class="t-time">${new Date(s.started * 1000).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span>${!s.sample && s.source === "serial" ? `<span class="tag">Official</span>` : !s.sample && s.source === "sim" ? `<span class="tag">Simulated</span>` : ""}</td><td class="l">${esc(s.profile.name)}</td><td>${Math.round(m.mean_peak)}°</td><td>${cnt(m, m.pct_reached)}</td><td>${cnt(m, m.pct_good)}</td></tr>`;
   }).join("");
 }
 let rsz; addEventListener("resize", () => { clearTimeout(rsz); rsz = setTimeout(renderProgress, 150); });
