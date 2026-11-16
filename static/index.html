@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RehaKnee</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #fff; --ink: #1c2230; --muted: #6b7385; --line: #e2e5eb;
+    --accent: #2563eb; --good: #15803d; --warn: #b45309; --bad: #b91c1c; --band: rgba(37,99,235,.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1218; --card: #181c24; --ink: #e6e9ef; --muted: #8b93a7; --line: #2a303c;
+      --accent: #60a5fa; --good: #4ade80; --warn: #fbbf24; --bad: #f87171; --band: rgba(96,165,250,.15); }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 system-ui, -apple-system, sans-serif; }
+  header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--card); flex-wrap: wrap; }
+  header h1 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
+  header h1 span { color: var(--accent); }
+  .pill { font-size: 13px; padding: 3px 10px; border-radius: 99px; background: var(--bg); color: var(--muted); }
+  .pill.ok { color: var(--good); } .pill.bad { color: var(--bad); }
+  main { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 16px; padding: 16px 20px; max-width: 1300px; margin: 0 auto; }
+  @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); padding: 12px 16px; } }
+  .card { min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; }
+  .wide { grid-column: 1 / -1; }
+  .step { margin-bottom: 16px; }
+  .step label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button:disabled { opacity: .45; cursor: default; }
+  select, input { font: inherit; width: 100%; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .grid2 label { margin: 0; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .note { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .note.bad { color: var(--bad); } .note.ok { color: var(--good); }
+  .live { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px; align-items: center; }
+  @media (max-width: 700px) { .live { grid-template-columns: minmax(0, 1fr); } }
+  canvas { width: 100%; display: block; }
+  #leg { height: 240px; }
+  #chart { height: 200px; }
+  #hist { height: 220px; }
+  .stats { display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 10px; }
+  .big { font-size: 44px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1; }
+  .big small { font-size: 18px; color: var(--muted); font-weight: 500; }
+  .lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .bar { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-top: 6px; width: 160px; }
+  .bar div { height: 100%; width: 0; background: var(--accent); transition: width .1s; }
+  .bar.done div { background: var(--good); }
+  #flash { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); padding: 10px 22px; border-radius: 99px; background: var(--good); color: #fff; font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  #flash.show { opacity: 1; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 14px; }
+  th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child, th.l, td.l { text-align: left; }
+  th { font-weight: 500; color: var(--muted); font-size: 12px; }
+  .scroll { overflow-x: auto; }
+  .v-good { color: var(--good); } .v-short, .v-rushed { color: var(--bad); } .v-short.hold { color: var(--warn); }
+  .summary { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 12px; }
+  .summary div b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+  .delta { font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Reha<span>Knee</span></h1>
+  <span id="conn" class="pill">connecting…</span>
+  <span id="modelPill" class="pill">rules only</span>
+  <span style="flex:1"></span>
+  <span id="simBox" class="row" hidden>
+    <span class="lbl">Simulated movement</span>
+    <select id="simStyle" style="width:auto"><option>controlled</option><option>short</option><option>rushed</option></select>
+  </span>
+  <button id="testBuzz" title="Play one vibration on the brace">Test vibration</button>
+</header>
+<div id="flash"></div>
+
+<main>
+  <section class="card">
+    <h2>Setup</h2>
+    <div class="step">
+      <label>1. Sit, thigh supported, foot relaxed. Hold still for 2 s.</label>
+      <button id="calBtn">Calibrate</button>
+      <div id="calNote" class="note">Not calibrated</div>
+    </div>
+    <div class="step">
+      <label>2. Exercise profile (therapist targets)</label>
+      <select id="profile"></select>
+      <div class="grid2">
+        <label>Target range (°)<input id="f_target_deg" type="number" min="10" max="120"></label>
+        <label>Tolerance (°)<input id="f_tol_deg" type="number" min="0" max="20"></label>
+        <label>Hold (s)<input id="f_hold_s" type="number" min="0" step="0.5"></label>
+        <label>Reps<input id="f_reps" type="number" min="1" max="50"></label>
+        <label>Min extend time (s)<input id="f_min_ext_s" type="number" min="0" step="0.1"></label>
+        <label>Min return time (s)<input id="f_min_ret_s" type="number" min="0" step="0.1"></label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input id="profName" placeholder="Profile name" style="flex:1">
+        <button id="saveProf">Save</button>
+      </div>
+    </div>
+    <div class="step">
+      <label>3. Training label (only when recording data for the AI)</label>
+      <select id="label">
+        <option value="">None: normal session</option>
+        <option value="controlled">controlled</option>
+        <option value="short">short (stops before target)</option>
+        <option value="rushed">rushed / abrupt</option>
+      </select>
+    </div>
+    <div class="row">
+      <button id="startBtn" class="primary">Start set</button>
+      <button id="stopBtn">Stop</button>
+    </div>
+    <div id="msg" class="note"></div>
+  </section>
+
+  <section class="card">
+    <h2>Live</h2>
+    <div class="live">
+      <canvas id="leg"></canvas>
+      <div>
+        <div class="stats">
+          <div><div class="lbl">Estimated range</div><div class="big"><span id="angle">--</span><small>°</small></div></div>
+          <div><div class="lbl">Reps</div><div class="big"><span id="repN">0</span><small> / <span id="repT">–</span></small></div></div>
+          <div><div class="lbl">Hold</div><div class="big"><span id="holdS">0.0</span><small> / <span id="holdT">–</span> s</small></div>
+            <div id="holdBar" class="bar"><div></div></div></div>
+        </div>
+        <canvas id="chart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="card wide">
+    <h2>This set</h2>
+    <div id="setSummary" class="summary"></div>
+    <div class="scroll"><table>
+      <thead><tr><th>#</th><th>Range °</th><th>Extend s</th><th>Hold s</th><th>Return s</th><th>Peak speed °/s</th><th class="l">Result</th><th class="l">AI</th></tr></thead>
+      <tbody id="reps"></tbody>
+    </table></div>
+  </section>
+
+  <section class="card wide">
+    <h2>History</h2>
+    <canvas id="hist"></canvas>
+    <div class="scroll" style="margin-top:12px"><table>
+      <thead><tr><th>Date</th><th class="l">Profile</th><th class="l">Label</th><th>Reps</th><th>Mean range °</th><th>Range SD °</th><th>Extend s</th><th>Hold s</th><th>Return s</th><th>Reached %</th><th>Good %</th><th></th></tr></thead>
+      <tbody id="history"></tbody>
+    </table></div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const FIELDS = ["target_deg", "tol_deg", "hold_s", "reps", "min_ext_s", "min_ret_s"];
+let st = {}, profiles = [], reps = [], trace = [], angle = 0, hold = 0;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const j = await r.json();
+  $("msg").textContent = j.error || "";
+  $("msg").className = "note" + (j.error ? " bad" : "");
+  return j;
+}
+
+function profileFromForm() {
+  const p = { name: $("profName").value || "Custom" };
+  for (const f of FIELDS) p[f] = Number($("f_" + f).value);
+  return p;
+}
+function fillForm(p) {
+  for (const f of FIELDS) $("f_" + f).value = p[f];
+  $("profName").value = p.name;
+  draw();
+}
+async function loadProfiles(select) {
+  profiles = await api("/api/profiles");
+  $("profile").innerHTML = profiles.map((p, i) => `<option value="${i}">${esc(p.name)}</option>`).join("");
+  const i = Math.max(0, profiles.findIndex(p => p.name === select));
+  $("profile").value = i;
+  fillForm(profiles[i]);
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// --- live stream -----------------------------------------------------------------------
+const es = new EventSource("/events");
+es.onerror = () => { $("conn").textContent = "server offline"; $("conn").className = "pill bad"; };
+es.onmessage = e => {
+  const m = JSON.parse(e.data);
+  if (m.type === "status") onStatus(m);
+  else if (m.type === "live") {
+    angle = m.angle; hold = m.hold;
+    trace.push([m.t, m.angle]);
+    while (trace.length && trace[0][0] < m.t - 12) trace.shift();
+  } else if (m.type === "event") {
+    flash({ target: "Target reached", hold: "Hold complete", set_done: "Set complete" }[m.event]);
+    if (m.event === "set_done") setTimeout(() => st.recording && stop(), 1500);
+  } else if (m.type === "rep") { reps.push(m.rep); renderReps(); }
+};
+
+function onStatus(m) {
+  st = m;
+  $("conn").textContent = m.connected ? (m.source === "sim" ? "simulated brace" : "brace connected") : "brace disconnected";
+  $("conn").className = "pill " + (m.connected ? "ok" : "bad");
+  $("modelPill").textContent = m.model ? "AI model loaded" : "rules only";
+  $("simBox").hidden = m.source !== "sim";
+  $("simStyle").value = m.sim_style;
+  const c = m.calibration;
+  $("calNote").textContent = m.calibrating ? "Hold still…" : !c ? "Not calibrated"
+    : c.still ? `Calibrated ✓ (gyro noise ${c.gyro_std}°/s)` : `Leg moved during calibration (noise ${c.gyro_std}°/s). Try again.`;
+  $("calNote").className = "note " + (c && !m.calibrating ? (c.still ? "ok" : "bad") : "");
+  $("calBtn").disabled = m.recording || m.calibrating;
+  $("startBtn").disabled = m.recording || !c;
+  $("stopBtn").disabled = !m.recording;
+  for (const el of document.querySelectorAll("#profile, .grid2 input, #label")) el.disabled = m.recording;
+  if (m.recording) { reps = m.reps; fillForm(m.session.profile); renderReps(); }
+}
+
+function flash(text) {
+  if (!text) return;
+  $("flash").textContent = text;
+  $("flash").classList.add("show");
+  clearTimeout(flash.t);
+  flash.t = setTimeout(() => $("flash").classList.remove("show"), 1200);
+}
+
+// --- actions ---------------------------------------------------------------------------
+$("calBtn").onclick = () => api("/api/calibrate", {});
+$("startBtn").onclick = async () => {
+  const j = await api("/api/start", { profile: profileFromForm(), label: $("label").value });
+  if (!j.error) { reps = []; renderReps(); }
+};
+$("stopBtn").onclick = () => stop();
+async function stop() { const j = await api("/api/stop", {}); if (!j.error) loadHistory(); }
+$("profile").onchange = () => fillForm(profiles[$("profile").value]);
+$("saveProf").onclick = async () => { const p = profileFromForm(); const j = await api("/api/profiles", p); if (!j.error) loadProfiles(p.name); };
+$("simStyle").onchange = () => api("/api/sim", { style: $("simStyle").value });
+$("testBuzz").onclick = () => api("/api/buzz", { effect: 1 });
+for (const f of FIELDS) $("f_" + f).oninput = draw;
+
+// --- tables ----------------------------------------------------------------------------
+const VCLASS = { good: "v-good", short: "v-short", rushed: "v-rushed", "short hold": "v-short hold" };
+function renderReps() {
+  $("reps").innerHTML = reps.map(r => `<tr>
+    <td>${r.n}</td><td>${r.peak_deg}</td><td>${r.ext_s}</td><td>${r.hold_s}</td><td>${r.ret_s}</td><td>${r.peak_vel}</td>
+    <td class="l ${VCLASS[r.verdict]}">${r.verdict}</td>
+    <td class="l">${r.ai ? `${r.ai.label} <span class="note">${Math.round(r.ai.conf * 100)}%</span>` : "–"}</td></tr>`).reverse().join("");
+  const n = reps.length, mean = k => reps.reduce((s, r) => s + r[k], 0) / n;
+  const sd = k => Math.sqrt(reps.reduce((s, r) => s + (r[k] - mean(k)) ** 2, 0) / n);
+  $("setSummary").innerHTML = !n ? '<div class="note">Reps appear here as you go.</div>' : [
+    ["Mean range", mean("peak_deg").toFixed(1) + "°"], ["Range consistency (SD)", "±" + sd("peak_deg").toFixed(1) + "°"],
+    ["Mean extend", mean("ext_s").toFixed(2) + " s"], ["Pace consistency (SD)", "±" + sd("ext_s").toFixed(2) + " s"],
+    ["Reached target", Math.round(100 * reps.filter(r => r.reached).length / n) + "%"],
+  ].map(([k, v]) => `<div><span class="lbl">${k}</span><b>${v}</b></div>`).join("");
+}
+
+let history = [];
+async function loadHistory() {
+  history = await api("/api/sessions");
+  const rows = history.filter(s => s.summary && s.summary.reps);
+  $("history").innerHTML = rows.map((s, i) => {
+    const m = s.summary, prev = rows[i - 1]?.summary;
+    const d = prev ? m.mean_peak - prev.mean_peak : null;
+    return `<tr><td>${new Date(s.started * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
+      <td class="l">${esc(s.profile.name)}</td><td class="l">${s.label || ""}</td><td>${m.reps}</td><td>${m.mean_peak}</td><td>${m.sd_peak}</td>
+      <td>${m.mean_ext}</td><td>${m.mean_hold}</td><td>${m.mean_ret}</td><td>${m.pct_reached}</td><td>${m.pct_good}</td>
+      <td class="delta ${d > 0 ? "v-good" : d < 0 ? "v-short" : ""}">${d === null ? "" : (d > 0 ? "+" : "") + d.toFixed(1) + "° vs prev"}</td></tr>`;
+  }).reverse().join("");
+  draw();
+}
+
+// --- drawing ---------------------------------------------------------------------------
+function ctx2d(c) {
+  const dpr = devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  if (c.width !== w * dpr || c.height !== h * dpr) { c.width = w * dpr; c.height = h * dpr; }
+  const x = c.getContext("2d");
+  x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  x.clearRect(0, 0, w, h);
+  return [x, w, h];
+}
+const target = () => Number($("f_target_deg").value) || 0;
+const tol = () => Number($("f_tol_deg").value) || 0;
+
+function drawLeg() {
+  const [x, w, h] = ctx2d($("leg"));
+  const kx = w * 0.42, ky = h * 0.32, L = Math.min(h * 0.6, w * 0.5);
+  const rad = a => a * Math.PI / 180, tip = a => [kx + L * Math.sin(rad(a)), ky + L * Math.cos(rad(a))];
+  // chair + target band
+  x.fillStyle = css("--line"); x.fillRect(kx - L * 0.95, ky + 10, L * 0.85, 10); x.fillRect(kx - L * 0.9, ky + 20, 8, h);
+  x.fillStyle = css("--band"); x.beginPath(); x.moveTo(kx, ky);
+  x.arc(kx, ky, L * 1.05, Math.PI / 2 - rad(target() + tol()), Math.PI / 2 - rad(target() - tol()), false); x.fill();
+  x.setLineDash([5, 5]); x.strokeStyle = css("--accent"); x.lineWidth = 1.5;
+  x.beginPath(); x.moveTo(kx, ky); x.lineTo(...tip(target()).map((v, i) => i ? ky + (v - ky) * 1.05 : kx + (v - kx) * 1.05)); x.stroke(); x.setLineDash([]);
+  // thigh, shin, knee
+  x.lineCap = "round"; x.strokeStyle = css("--muted"); x.lineWidth = 16;
+  x.beginPath(); x.moveTo(kx - L * 0.9, ky); x.lineTo(kx, ky); x.stroke();
+  const reached = angle >= target() - tol();
+  x.strokeStyle = reached ? css("--good") : css("--accent"); x.lineWidth = 14;
+  const [fx, fy] = tip(angle); x.beginPath(); x.moveTo(kx, ky); x.lineTo(fx, fy); x.stroke();
+  x.fillStyle = css("--ink"); x.beginPath(); x.arc(kx, ky, 9, 0, 7); x.fill();
+  x.fillStyle = css("--warn"); x.fillRect(kx + (fx - kx) * 0.35 - 6, ky + (fy - ky) * 0.35 - 6, 12, 12); // IMU
+  x.fillStyle = css("--muted"); x.font = "12px system-ui"; x.fillText(`target ${target()}°`, kx + 8, ky - 10);
+}
+
+function drawChart() {
+  const [x, w, h] = ctx2d($("chart"));
+  const pad = 28, t1 = trace.length ? trace[trace.length - 1][0] : 0, t0 = t1 - 10;
+  const ymax = Math.max(90, target() + 20), Y = a => h - 18 - (h - 26) * a / ymax, X = t => pad + (w - pad) * (t - t0) / 10;
+  x.fillStyle = css("--band"); x.fillRect(pad, Y(target() + tol()), w - pad, Y(target() - tol()) - Y(target() + tol()));
+  x.strokeStyle = css("--line"); x.fillStyle = css("--muted"); x.font = "11px system-ui"; x.lineWidth = 1;
+  for (let a = 0; a <= ymax; a += 30) { x.beginPath(); x.moveTo(pad, Y(a)); x.lineTo(w, Y(a)); x.stroke(); x.fillText(a + "°", 0, Y(a) + 4); }
+  x.fillText("last 10 s", w - 52, h - 3);
+  x.strokeStyle = css("--accent"); x.lineWidth = 2; x.beginPath();
+  trace.forEach(([t, a], i) => t >= t0 && (i ? x.lineTo(X(t), Y(a)) : x.moveTo(X(t), Y(a))));
+  x.stroke();
+}
+
+function drawHistory() {
+  const [x, w, h] = ctx2d($("hist"));
+  const rows = history.filter(s => s.summary && s.summary.reps);
+  x.fillStyle = css("--muted"); x.font = "12px system-ui";
+  if (rows.length < 1) { x.fillText("No saved sets yet. Finish a set to start your progress chart.", 0, 20); return; }
+  const pad = 34, ymax = Math.max(90, ...rows.map(s => s.summary.mean_peak + s.summary.sd_peak + 10));
+  const X = i => pad + 10 + (w - pad - 20) * (rows.length === 1 ? 0.5 : i / (rows.length - 1)), Y = a => h - 22 - (h - 34) * a / ymax;
+  x.strokeStyle = css("--line"); x.lineWidth = 1;
+  for (let a = 0; a <= ymax; a += 30) { x.beginPath(); x.moveTo(pad, Y(a)); x.lineTo(w, Y(a)); x.stroke(); x.fillText(a + "°", 0, Y(a) + 4); }
+  // target per session (dashed), mean range with SD whiskers, dot colour = % good reps
+  x.setLineDash([4, 4]); x.strokeStyle = css("--muted"); x.beginPath();
+  rows.forEach((s, i) => i ? x.lineTo(X(i), Y(s.profile.target_deg)) : x.moveTo(X(i), Y(s.profile.target_deg))); x.stroke(); x.setLineDash([]);
+  x.strokeStyle = css("--accent"); x.lineWidth = 2; x.beginPath();
+  rows.forEach((s, i) => i ? x.lineTo(X(i), Y(s.summary.mean_peak)) : x.moveTo(X(i), Y(s.summary.mean_peak))); x.stroke();
+  rows.forEach((s, i) => {
+    const m = s.summary;
+    x.lineWidth = 1.5; x.beginPath(); x.moveTo(X(i), Y(m.mean_peak - m.sd_peak)); x.lineTo(X(i), Y(m.mean_peak + m.sd_peak)); x.stroke();
+    x.fillStyle = m.pct_good >= 80 ? css("--good") : m.pct_good >= 40 ? css("--warn") : css("--bad");
+    x.beginPath(); x.arc(X(i), Y(m.mean_peak), 5, 0, 7); x.fill();
+  });
+  x.fillStyle = css("--muted");
+  x.fillText("mean range ± SD per set · dashed = target · dot: green ≥80% good reps, amber ≥40%, red below", pad, h - 4);
+}
+
+function draw() {
+  $("angle").textContent = st.calibrated ? angle.toFixed(0) : "--";
+  $("repN").textContent = reps.length;
+  $("repT").textContent = $("f_reps").value || "–";
+  const ht = Number($("f_hold_s").value) || 0;
+  $("holdS").textContent = hold.toFixed(1); $("holdT").textContent = ht;
+  $("holdBar").firstElementChild.style.width = Math.min(100, ht ? 100 * hold / ht : 0) + "%";
+  $("holdBar").classList.toggle("done", ht && hold >= ht);
+  drawLeg(); drawChart(); drawHistory();
+}
+(function loop() { draw(); requestAnimationFrame(loop); })();
+
+loadProfiles(); loadHistory(); renderReps();
+</script>
+</body>
+</html>
