@@ -21,10 +21,10 @@ Open http://localhost:8000, then:
 
 ## How it works
 
-One BMI270 motion sensor on the shin, an Arduino R4 WiFi, and a DRV2605L vibration driver. The Arduino streams raw sensor data over USB to a small Python server, on a Raspberry Pi 4B or a laptop. The server estimates shin rotation from gravity and the gyro, grades each rep against the physio's targets, triggers the vibration, and serves the page.
+One BMI270 motion sensor on the shin, an Arduino R4 WiFi, and a DRV2605L vibration driver. The Arduino streams raw sensor data over USB to a small Python server on a laptop. The server estimates shin rotation from gravity and the gyro, grades each rep against the physio's targets, triggers the vibration, and serves the page.
 
 ```
-BMI270 + DRV2605L --I2C-- Arduino R4 --USB serial-- server.py (Pi/laptop) --SSE--> browser
+BMI270 + DRV2605L --I2C-- Arduino R4 --USB serial-- server.py (laptop) --SSE--> browser
                                       <-- "B<n>" buzz --         |
                                                          sessions/*.json + *.csv
 ```
@@ -33,23 +33,14 @@ Rehabify reports an *estimated movement range* from the rest position you set, f
 
 ## Run with the brace
 
-With the brace plugged in:
+Plug the brace's Arduino into the laptop by USB, then:
 
 ```bash
+pip install pyserial
 python3 server.py
 ```
 
-The server auto-detects the Arduino; to choose the port yourself, pass `--serial /dev/ttyACM0` (Pi) or `--serial /dev/cu.usbmodemXXXX` (Mac).
-
-### On the Raspberry Pi
-
-```bash
-sudo apt install python3-serial python3-sklearn   # apt avoids building sklearn with pip on the Pi
-sudo usermod -aG dialout $USER                    # serial access; log out and back in
-python3 server.py
-```
-
-Open `http://<pi-hostname>.local:8000` from any laptop on the same network.
+Open http://localhost:8000. The server finds the Arduino by itself; to choose the port, pass `--serial /dev/cu.usbmodemXXXX` (Mac), `--serial /dev/ttyACM0` (Linux) or `--serial COM3` (Windows).
 
 ## Arduino
 

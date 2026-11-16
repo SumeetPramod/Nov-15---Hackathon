@@ -25,7 +25,7 @@ A rep counter says how many. Rehabify says how well, in the moment, through the 
 ## Operating Context
 
 - A home chair, daylight or a lamp, a laptop on a table or a phone propped against something, often at arm's length or further.
-- Single page served by a small Python server on a Raspberry Pi 4B or the patient's laptop; the brace connects by USB.
+- Single page served by a small Python server on the patient's laptop; the brace connects to it by USB.
 - Sessions are short sets of 5 to 10 reps; a day may have several sets.
 - The demo is judged from a GitHub repo, a README, and a local run of the simulator.
 
